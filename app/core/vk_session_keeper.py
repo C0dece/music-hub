@@ -69,6 +69,9 @@ class VkSessionKeeper(QObject):
         self._engine = None
         self._attempts = 0
         self._last_try = 0.0
+        # Блокировка аккаунта — единственный отказ, который не проходит сам собой:
+        # пауза тут ничего не лечит, и попытки прекращаются совсем, до нового входа
+        self._blocked = False
         self._running = False
         self._timeout = QTimer(self)
         self._timeout.setSingleShot(True)
@@ -90,9 +93,12 @@ class VkSessionKeeper(QObject):
         return self._running
 
     def reset(self) -> None:
-        """Сессия появилась другим путём (вошли руками) — счётчик неудач ни к чему."""
+        """Сессия появилась другим путём (вошли руками) — счётчик неудач ни к чему.
+
+        Заодно снимается и запрет по блокировке: раз вход удался, VK пускает."""
         self._attempts = 0
         self._last_try = 0.0
+        self._blocked = False
 
     def try_restore(self) -> bool:
         """Попробовать вернуть сессию. Возвращает, началась ли попытка.
@@ -121,6 +127,11 @@ class VkSessionKeeper(QObject):
     def _why_not(self) -> str:
         if self._running:
             return 'предыдущая попытка ещё идёт'
+        # Заблокированный аккаунт перезаходом не лечится: встроенный браузер честно
+        # пройдёт вход и упрётся в ту же страницу блокировки, а VK увидит ещё одну
+        # попытку. Снимает этот запрет только `reset()` — то есть удавшийся вход
+        if self._blocked:
+            return 'VK держит аккаунт заблокированным'
         if type(self)._profile_busy:
             return 'профиль занят окном входа'
         idle = time.monotonic() - self._last_try if self._last_try else None
@@ -170,6 +181,7 @@ class VkSessionKeeper(QObject):
             self._close_engine()
             self._running = False
             self._attempts = MAX_ATTEMPTS
+            self._blocked = True
             self.blocked.emit(str(error))
             return
         if error is not None:

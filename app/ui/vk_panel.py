@@ -91,6 +91,9 @@ def _human_delay(seconds: int) -> str:
 class VkPanel(QWidget):
     login_requested = Signal()
     reconnect_requested = Signal()
+    # Человек говорит, что снял блокировку на сайте: только по этому сигналу
+    # программа снова обращается к VK
+    unblock_requested = Signal()
     download_tracks_requested = Signal(list)  # list[track dict]
     play_tracks_requested = Signal(list, int)  # list[track dict], с какого начинать
     enqueue_tracks_requested = Signal(list, bool)  # list[track dict], «следующим»
@@ -367,7 +370,12 @@ class VkPanel(QWidget):
         self._show_notice(
             'VK заблокировал аккаунт',
             message or 'Откройте vk.com в браузере: VK покажет причину и способ '
-                       'снять блокировку. Вход в программу тут ни при чём.')
+                       'снять блокировку. Вход в программу тут ни при чём.',
+            # Кнопка одна и нажимается только руками. Сама программа в
+            # заблокированный аккаунт больше не стучится: её попытки ничего не
+            # возвращают, а VK считает их продолжением того самого потока запросов.
+            # Человек снимает блокировку на сайте и говорит об этом нажатием
+            'Блокировка снята, повторить', self.unblock_requested.emit)
 
     def show_session_lost(self) -> None:
         """Тихо не вышло: теперь кнопка входа уместна — и другого пути уже нет."""

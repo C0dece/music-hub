@@ -332,6 +332,34 @@ def _is_blocked_api_error(exc) -> bool:
     return 'blocked' in str(exc).lower()
 
 
+def _is_blocked_url(url) -> bool:
+    """Заблокированный аккаунт VK узнаётся по адресу, на котором осела страница."""
+    return isinstance(url, str) and any(m in url for m in _BLOCKED_MARKERS)
+
+
+def probe_blocked(session: requests.Session) -> bool:
+    """Один запрос на входе: не заблокирован ли аккаунт?
+
+    Нужен потому, что `VkAudio` о блокировке молчит. Её `GET m.vk.ru/` проходит
+    цепочку редиректов через login.vk.ru и оседает на `/vkui/blocked`, но код
+    ответа — 200, исключения нет, `user_id` получен, и клиент рапортует
+    готовность. Блокировку замечали лишь следующие запросы, каждый по
+    отдельности: список треков, список плейлистов, потом сторож. Пять обращений
+    к аккаунту, который VK уже пометил, — и так при каждом запуске программы.
+
+    Смотрим не тело страницы, а адрес, на котором остановились редиректы:
+    вёрстку VK меняет когда захочет, а `act=blocked` в адресе — часть их
+    собственной логики входа. Сетевую ошибку блокировкой не считаем: нет связи —
+    это не «VK не пускает»."""
+    try:
+        resp = session.get('https://m.vk.ru/', allow_redirects=True)
+    except requests.RequestException as exc:
+        logger.debug('probe_blocked: проверка не удалась (%s)', exc)
+        return False
+    chain = [r.url for r in resp.history] + [resp.url]
+    return any(_is_blocked_url(url) for url in chain)
+
+
 BLOCKED_MESSAGE = (
     'VK заблокировал ваш аккаунт, поэтому музыка недоступна.\n\n'
     'Дело не во входе в программу: сохранённые куки и токен целы, VK отвечает '
@@ -624,6 +652,14 @@ class VkClient:
         self._browser_cookies_tried = False
         self._has_web_session, self._cookies_error = _load_vk_cookies(http_session, cookies_browser)
         self._session = vk_api.VkApi(token=token, api_version=API_VERSION, session=http_session)
+        # Спрашиваем один раз и сразу: заблокирован ли аккаунт. Раньше этой развилки
+        # не было, и подключение шло напролом — VkAudio молчит о блокировке, поэтому
+        # о ней узнавали только треки, плейлисты и сторож, каждый своим запросом.
+        # Проверка стоит здесь, до VkAudio: дальше пойдут обращения к VK, а по
+        # заблокированному аккаунту им идти незачем
+        if self._has_web_session and probe_blocked(http_session):
+            logger.warning('VkClient: VK держит аккаунт заблокированным, подключение прекращено')
+            raise VkAccountBlocked(BLOCKED_MESSAGE)
         logger.debug('VkClient: VkApi создан, инициализирую VkAudio (users.get + GET m.vk.ru)')
         try:
             self._audio = VkAudio(self._session)

@@ -22,9 +22,22 @@ def configure_logging() -> None:
     console_handler.setFormatter(fmt)
     root.addHandler(console_handler)
 
+    _quiet_noisy_libraries()
     sys.excepthook = _log_unhandled_exception
     _mark_run_boundaries()
     _capture_qt_messages()
+
+
+def _quiet_noisy_libraries() -> None:
+    """Убрать из журнала чужой отладочный поток — прежде всего сетевой.
+
+    Корневой уровень DEBUG нужен нам самим, но вместе с нашими записями его
+    подхватывал `urllib3` и печатал каждый запрос целиком, вместе с адресом.
+    В адресах VK едут `c_hash`, `r_hash` и прочие ключи сессии — то есть журнал,
+    которым человек делится, когда просит помощи, отдавал вместе с собой доступ
+    к аккаунту. Своих записей это не касается: длинные ключи мы и так режем."""
+    for name in ('urllib3', 'requests', 'vk_api', 'charset_normalizer', 'PIL'):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
 def _mark_run_boundaries() -> None:

@@ -31,6 +31,7 @@ class Skeleton:
         self._session_tries = 0
         self._session_handled = True
         self._token_pending = True
+        self._awaiting_user_continue = False
         self._verified_token = None
         self._alive = False
 
@@ -89,6 +90,21 @@ def settle(page):
 
     poll = QTimer()
     poll.timeout.connect(stop_when_done)
+    poll.start(1)
+    loop.exec()
+    poll.stop()
+    QCoreApplication.processEvents()
+
+
+def settle_until(done, timeout_ms=30000):
+    """Крутить очередь событий, пока не выполнится условие (или не выйдет срок)."""
+    deadline = QTimer()
+    deadline.setSingleShot(True)
+    loop = QEventLoop()
+    deadline.timeout.connect(loop.quit)
+    deadline.start(timeout_ms)
+    poll = QTimer()
+    poll.timeout.connect(lambda: loop.quit() if done() else None)
     poll.start(1)
     loop.exec()
     poll.stop()
@@ -166,6 +182,7 @@ class TokenStep(Skeleton):
     что читает `_on_session_ready`, и подменён уход за новым токеном."""
 
     _on_session_ready = login_mod.VkWebLoginDialog._on_session_ready
+    _on_continue_clicked = login_mod.VkWebLoginDialog._on_continue_clicked
     _request_new_token = login_mod.VkWebLoginDialog._request_new_token
     _on_saved_token_verified = login_mod.VkWebLoginDialog._on_saved_token_verified
 
@@ -299,6 +316,86 @@ class OAuthPageFailureTests(unittest.TestCase):
         page._on_load_finished(False)
         self.assertEqual(page.status, '')
         self.assertTrue(page._session_handled)
+
+
+class RetryLoopTests(unittest.TestCase):
+    """Окно не должно молотить VK по кругу.
+
+    Повод — журнал пользователя: 18 повторов входа за три минуты, ровно по три
+    проверки каждые 8-9 секунд. Исчерпав попытки, окно уводило человека на сайт VK,
+    загрузка этой страницы сама поднимала `_on_session_ready`, тот обнулял счётчик —
+    и всё начиналось заново, пока окно открыто."""
+
+    def setUp(self):
+        qt_app()
+        self.token = {'access_token': 'x', 'user_id': 1}
+        self._real_delay = login_mod._SESSION_RETRY_MS
+        login_mod._SESSION_RETRY_MS = 1
+
+    def tearDown(self):
+        login_mod._SESSION_RETRY_MS = self._real_delay
+
+    def _exhausted(self):
+        """Скелет после круга проверок, закончившегося отказом."""
+        page = with_checks(TokenStep(), [False])
+        page._verified_token = self.token
+        page._succeed(self.token)
+        # Ждём именно поднятого флага, а не общего `settle`: на этом скелете
+        # `_session_handled` опущен с самого начала, и `settle` вышел бы посреди круга,
+        # оставив последний повтор на таймере — он лёг бы в счётчик уже внутри проверки
+        settle_until(lambda: page._awaiting_user_continue)
+        return page
+
+    def test_page_reload_does_not_start_a_new_round(self):
+        """Главный случай: страница догрузилась сама — новых обращений к VK нет."""
+        page = self._exhausted()
+        spent = page.checks
+        for _ in range(5):
+            page._on_session_ready()
+        self.assertEqual(page.checks, spent)
+
+    def test_continue_click_starts_a_new_round(self):
+        """Осознанное нажатие по-прежнему даёт человеку второй шанс."""
+        page = self._exhausted()
+        spent = page.checks
+        page._on_continue_clicked()
+        self.assertGreater(page.checks, spent)
+
+    def test_blocked_account_stops_at_the_first_answer(self):
+        """VK ответил «заблокирован» — повторы бессмысленны, добивать его незачем."""
+        page = TokenStep()
+        page._verified_token = self.token
+        blocked = login_mod.VkAccountBlocked('VK заблокировал ваш аккаунт.')
+
+        def check(token_data):
+            page._session_tries += 1
+            page.checks += 1
+            page._on_session_checked(token_data, None, blocked)
+        page._check_session = check
+
+        page._succeed(self.token)
+        settle_until(lambda: page._awaiting_user_continue)
+        self.assertEqual(page.checks, 1)
+        self.assertEqual(page.emitted, [])
+        self.assertIn('заблокировал', page.status)
+
+    def test_blocked_account_does_not_bounce_the_page(self):
+        """Ходить на сайт по кругу тоже не надо: чинится это только на стороне VK."""
+        page = TokenStep()
+        page._verified_token = self.token
+        blocked = login_mod.VkAccountBlocked('VK заблокировал ваш аккаунт.')
+
+        def check(token_data):
+            page._session_tries += 1
+            page.checks += 1
+            page._on_session_checked(token_data, None, blocked)
+        page._check_session = check
+
+        page._succeed(self.token)
+        settle_until(lambda: page._awaiting_user_continue)
+        for _ in range(5):
+            page._on_session_ready()
+        self.assertEqual(page.checks, 1)
 
 
 if __name__ == '__main__':

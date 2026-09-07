@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import threading
+import time
 from collections import OrderedDict
 from pathlib import Path
 
@@ -26,11 +28,22 @@ _MAX_BYTES = 4 * 1024 * 1024
 # Сколько обложек держим на диске. Больше — просто мусор в профиле
 _DISK_LIMIT = 150 * 1024 * 1024
 
+# Сколько обложек тянем одновременно. Пул потоков общий на всё приложение (8 мест),
+# а прокрутка списка просит до трёх десятков картинок разом — без ограничения они
+# занимали все места, и воспроизведение с проверкой сессии ждали в очереди
+_PARALLEL = 4
+# Через сколько можно снова попробовать ссылку, которая не открылась. Насовсем
+# помечать нельзя: почти все отказы — таймауты, а не мёртвые адреса, и обложка
+# пропадала до перезапуска
+_RETRY_AFTER = 60.0
+
 _memory: OrderedDict[str, QPixmap] = OrderedDict()
 _pending: dict[str, list] = {}
-# Ссылки, которые уже не открылись: без этого списки просили бы их снова при
-# каждой перерисовке строки
-_failed: set[str] = set()
+# Ссылки, которые не открылись, и когда это случилось
+_failed: dict[str, float] = {}
+# Очередь ожидающих загрузок: ключ и порядок нужны, чтобы отдавать видимое первым
+_queue: list[str] = []
+_running = 0
 
 
 def _key(url: str) -> str:
@@ -44,13 +57,99 @@ def _remember(url: str, pixmap: QPixmap) -> None:
         _memory.popitem(last=False)
 
 
+# Одна сессия на все обложки: они идут к одному-двум хостам сотнями, и своя
+# сессия на каждую означала своё рукопожатие TLS на каждую. Через прокси с
+# разрезанием пакета такое рукопожатие особенно дорогое — отсюда и были таймауты
+_session = None
+_session_proxy = ''
+_session_lock = threading.Lock()
+
+
+def _http():
+    """Общая сессия, живущая, пока не сменится прокси."""
+    global _session, _session_proxy
+    import requests
+    from requests.adapters import HTTPAdapter
+
+    current = proxy.effective() or ''
+    with _session_lock:
+        if _session is not None and _session_proxy == current:
+            return _session
+        if _session is not None:
+            _session.close()
+        session = requests.Session()
+        proxy.apply_to_session(session)
+        # Держим соединения открытыми: столько же, сколько качаем разом
+        adapter = HTTPAdapter(pool_connections=_PARALLEL, pool_maxsize=_PARALLEL)
+        session.mount('https://', adapter)
+        session.mount('http://', adapter)
+        _session, _session_proxy = session, current
+        return session
+
+
+def reset_session() -> None:
+    """Забыть сессию: адрес прокси сменился, старые соединения ведут не туда."""
+    global _session, _session_proxy
+    with _session_lock:
+        if _session is not None:
+            _session.close()
+        _session, _session_proxy = None, ''
+
+
+# Обложки каналов YouTube приходят с yt3.googleusercontent.com, и именно к этому
+# имени соединение у части провайдеров не встаёт: рукопожатие TLS висит до самого
+# срока (598 таких отказов в журнале за неделю — треть всех загрузок). Картинки
+# при этом лежат на общем хранилище Google и точно так же отдаются с lh3 — тот же
+# путь, тот же файл, разница только в имени. Замер на живой сети: yt3 — 0 успешных
+# из 12 за 122 с, lh3 — 10 из 10 за 7.7 с
+_HOST_FALLBACK = {'yt3.googleusercontent.com': 'lh3.googleusercontent.com',
+                  'yt3.ggpht.com': 'lh3.googleusercontent.com'}
+# Хосты, которые уже не открылись, и когда. Пока метка свежая, идём сразу на
+# запасной: иначе каждая обложка в списке платит свои десять секунд ожидания
+_bad_hosts: dict[str, float] = {}
+
+
+def _host_is_bad(host: str) -> bool:
+    failed_at = _bad_hosts.get(host)
+    if failed_at is None:
+        return False
+    if time.monotonic() - failed_at < _RETRY_AFTER:
+        return True
+    del _bad_hosts[host]     # срок вышел, пробуем основной адрес заново
+    return False
+
+
+def _alternate(url: str) -> str | None:
+    """Тот же файл под другим именем хоста, если такое имя известно."""
+    for host, spare in _HOST_FALLBACK.items():
+        if f'//{host}/' in url:
+            return url.replace(f'//{host}/', f'//{spare}/', 1)
+    return None
+
+
 def _fetch(url: str, path: Path) -> bytes:
     import requests
 
-    session = requests.Session()
-    proxy.apply_to_session(session)
-    response = session.get(url, timeout=15, stream=True)
-    response.raise_for_status()
+    host = url.split('/')[2]
+    spare = _alternate(url)
+    if spare is not None and _host_is_bad(host):
+        # Этот хост только что не открылся. Ждать от него ещё десять секунд на
+        # каждой обложке в списке незачем — идём сразу на запасной
+        url, spare = spare, None
+    try:
+        # Раздельные сроки: на соединение много не нужно, а вот сама картинка через
+        # прокси с разрезанием пакета едет медленно
+        response = _http().get(url, timeout=(10, 30), stream=True)
+        response.raise_for_status()
+    except (requests.Timeout, requests.ConnectionError):
+        # Не открылось — пробуем то же самое с запасного хранилища. Сразу с него
+        # ходить нельзя: основной адрес рабочий, просто не у всех
+        if spare is None:
+            raise
+        _bad_hosts[host] = time.monotonic()
+        logger.debug('Обложка: %s не отвечает, идём на запасной хост', host)
+        response = _http().get(spare, timeout=(10, 30), stream=True)
+        response.raise_for_status()
     data = response.content[:_MAX_BYTES]
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -109,13 +208,24 @@ def cached(url: str) -> QPixmap | None:
     return pixmap
 
 
+def _recently_failed(url: str) -> bool:
+    """Ссылку недавно пробовали и не смогли. Через минуту попробуем ещё раз."""
+    failed_at = _failed.get(url)
+    if failed_at is None:
+        return False
+    if time.monotonic() - failed_at < _RETRY_AFTER:
+        return True
+    del _failed[url]
+    return False
+
+
 def load(url: str, callback) -> None:
     """Позвать `callback(url, QPixmap)`, когда обложка будет готова.
 
     Вызов дешёвый: то, что уже есть, отдаётся сразу; одинаковые ссылки
     объединяются в одну загрузку. При ошибке callback просто не зовётся —
     заглушка на месте уже стоит."""
-    if not url or url in _failed:
+    if not url or _recently_failed(url):
         return
     ready = cached(url)
     if ready is not None:
@@ -125,9 +235,33 @@ def load(url: str, callback) -> None:
     waiting = _pending.get(url)
     if waiting is not None:
         waiting.append(callback)
+        # Свежий запрос — картинка снова на виду. Двигаем её в конец очереди:
+        # там разбор начинается первым, а прокрутка вниз оставляет позади ровно
+        # то, что уже уехало с экрана
+        if url in _queue:
+            _queue.remove(url)
+            _queue.append(url)
         return
     _pending[url] = [callback]
+    # Обложка из тегов лежит на диске: очередь ей ни к чему, и ждать за чужими
+    # сетевыми таймаутами она не должна
+    if not url.startswith('http'):
+        _start(url, queued=False)
+        return
+    _queue.append(url)
+    _pump()
 
+
+def _pump() -> None:
+    """Запустить столько загрузок, сколько разрешает предел одновременных."""
+    global _running
+    while _queue and _running < _PARALLEL:
+        # С конца: последнее, что попросили, человек и видит перед собой
+        _running += 1
+        _start(_queue.pop())
+
+
+def _start(url: str, queued: bool = True) -> None:
     path = CACHE_DIR / f'{_key(url)}.img'
 
     def work():
@@ -143,21 +277,30 @@ def load(url: str, callback) -> None:
         return _fetch(url, path)
 
     def on_done(data, error):
+        global _running
+        if queued:
+            _running -= 1
         callbacks = _pending.pop(url, [])
-        if error or not data:
-            logger.debug('Обложка не загрузилась: %s', error)
-            _failed.add(url)
-            return
-        pixmap = QPixmap()
-        if not pixmap.loadFromData(QByteArray(data)):
-            _failed.add(url)
-            return
-        _remember(url, pixmap)
-        for handler in callbacks:
-            try:
-                handler(url, pixmap)
-            except RuntimeError:
-                pass  # виджет успели закрыть, пока картинка ехала
+        try:
+            if error or not data:
+                logger.debug('Обложка не загрузилась: %s', error)
+                _failed[url] = time.monotonic()
+                return
+            pixmap = QPixmap()
+            if not pixmap.loadFromData(QByteArray(data)):
+                _failed[url] = time.monotonic()
+                return
+            _remember(url, pixmap)
+            for handler in callbacks:
+                try:
+                    handler(url, pixmap)
+                except RuntimeError:
+                    pass  # виджет успели закрыть, пока картинка ехала
+        finally:
+            # Очередь обязана двигаться даже после неудачи, иначе места
+            # кончатся и всё остальное встанет навсегда
+            if queued:
+                _pump()
 
     run_async(work, on_done)
 

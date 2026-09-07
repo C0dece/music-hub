@@ -417,6 +417,7 @@ class MainWindow(QMainWindow):
         self._vk_panel.login_requested.connect(self._open_vk_login)
         self._vk_panel.download_tracks_requested.connect(self._queue_vk_tracks)
         self._vk_panel.reconnect_requested.connect(self._try_auto_vk_login)
+        self._vk_panel.unblock_requested.connect(self._retry_after_unblock)
         self._vk_panel.session_expired.connect(self._refresh_status_chips)
         self._vk_panel.session_expired.connect(self._restore_vk_session)
         self._vk_panel.play_tracks_requested.connect(self._play_vk_rows)
@@ -2147,6 +2148,10 @@ class MainWindow(QMainWindow):
             # Браузер для кук могли сменить — предпросмотру нужны куки уже нового
             preload_preview_cookies(self._settings.get('cookies_browser'))
             proxy.apply(self._settings)
+            # Открытые соединения обложек ведут через прежний прокси. Адрес
+            # посредника при этом не меняется (порт держит Chromium), так что
+            # сама сессия расхождения не заметит — рвём её здесь
+            covers.reset_session()
             self._detect_proxy()
             self._apply_settings_to_controls()
             self._apply_music_settings()
@@ -2172,6 +2177,7 @@ class MainWindow(QMainWindow):
                 logger.debug('Поиск прокси не удался: %s', error)
                 return
             proxy.set_detected(url)
+            covers.reset_session()
 
         run_async(proxy.detect_local, on_done)
 
@@ -2243,6 +2249,8 @@ class MainWindow(QMainWindow):
                 self._refresh_auto_vk_check()
                 return
             self._cancel_vk_retry()
+            # Подключились — значит, VK пускает: прежняя отметка о блокировке устарела
+            config.clear_vk_blocked()
             self._vk_client = client
             self._vk_offline = False
             # Задачам он нужен, чтобы получить прямую ссылку на трек перед скачиванием
@@ -2400,6 +2408,13 @@ class MainWindow(QMainWindow):
         молчаливые попытки по кругу выглядели как «программа сломалась и ничего не
         делает», хотя она делала, просто бесполезное."""
         logger.warning('VK: аккаунт заблокирован, автоматические попытки остановлены')
+        # Запоминаем на диск: без этого знание жило до закрытия программы, и каждый
+        # следующий запуск начинал с нуля — полный залп запросов по аккаунту, который
+        # VK уже пометил. Ровно это и не давало блокировке сняться
+        # Клиента к этому моменту уже нет, поэтому чей это аккаунт — смотрим в
+        # сохранённом входе: пригодится, чтобы не спутать отметку с чужой
+        token_data = config.load_vk_token() or {}
+        config.save_vk_blocked(self._vk_user_id() or token_data.get('user_id'))
         self._vk_session_retry.stop()
         self._vk_session_delay = 0
         # И почасового сторожа тоже: он бы завёл цикл заново со следующим тиком
@@ -2408,6 +2423,17 @@ class MainWindow(QMainWindow):
         self._vk_chip.update_chip('VK заблокировал аккаунт', 'warn',
                                   'Музыка недоступна, пока VK не снимет блокировку')
         self._notify('VK заблокировал аккаунт — откройте vk.com в браузере')
+
+    def _retry_after_unblock(self) -> None:
+        """«Блокировка снята, повторить» — единственный путь обратно к VK.
+
+        Отметку стираем до попытки: иначе `_try_auto_vk_login` увидел бы её и снова
+        отказался идти. Если VK всё ещё не пускает, подключение упрётся в ту же
+        проверку и отметка вернётся на место — но уже ценой одного запроса, а не
+        целого залпа при каждом запуске."""
+        logger.info('VK: человек сообщил о снятии блокировки, пробую подключиться')
+        config.clear_vk_blocked()
+        self._try_auto_vk_login(forced=True)
 
     def _retry_vk_session(self) -> None:
         """Очередная тихая попытка вернуть сессию сайта.
@@ -2436,11 +2462,23 @@ class MainWindow(QMainWindow):
         self._mixer.forget()
         self._mix_page.refresh_sources()
 
-    def _try_auto_vk_login(self) -> None:
+    def _try_auto_vk_login(self, forced: bool = False) -> None:
         """Подключение сохранённым токеном — при запуске, по кнопке «Повторить сейчас»
-        в панели VK и по таймеру после обрыва связи."""
+        в панели VK и по таймеру после обрыва связи.
+
+        `forced` ставит только кнопка «Повторить попытку»: это единственный случай,
+        когда в заблокированный аккаунт стучаться уместно — человек сам говорит, что
+        снял блокировку."""
         # Иначе ручное нажатие и сработавший таймер полезли бы в VK вдвоём
         self._vk_retry.stop()
+        if not forced and config.load_vk_blocked() is not None:
+            # Про блокировку известно с прошлого раза. Молча не лезем: запросы по
+            # такому аккаунту ничего не вернут, а VK видит очередной поток обращений
+            # и держит блокировку дальше. Ждём человека — он снимет её на сайте и
+            # нажмёт «Повторить попытку»
+            logger.info('VK: аккаунт помечен заблокированным, автоподключение пропущено')
+            self._on_vk_account_blocked(vk_client_mod.BLOCKED_MESSAGE)
+            return
         token_data = config.load_vk_token()
         if token_data and token_data.get('access_token'):
             self._connect_vk_client(token_data['access_token'])

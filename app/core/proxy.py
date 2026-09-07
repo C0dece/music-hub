@@ -45,6 +45,14 @@ _VIDEO_HTTP_TARGET = 'http://redirector.googlevideo.com/'
 _PROBE_URL = 'https://www.youtube.com/generate_204'
 _ENV_VARS = ('HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy')
 
+# Домены VK ходят мимо прокси всегда. Причина не в скорости: вход в аккаунт с
+# зарубежного адреса, да ещё и меняющегося от запуска к запуску, VK считает угоном
+# и замораживает аккаунт до подтверждения по телефону. В России VK и так открыт,
+# прокси нужен для YouTube, поэтому VK отправляем напрямую.
+VK_DIRECT_DOMAINS = ('vk.com', 'vk.ru', 'vk-cdn.net', 'vk-portal.net',
+                     'userapi.com', 'vkuseraudio.net', 'vkuseraudio.com',
+                     'vkuservideo.net', 'vkuservideo.com', 'mycdn.me', 'vkgroup.net')
+
 # Снимок системных настроек делаем до того, как сами начнём писать в окружение:
 # иначе авто-режим на втором вызове находил бы собственный прокси.
 _SYSTEM_PROXIES = urllib.request.getproxies()
@@ -52,6 +60,9 @@ _SYSTEM_PROXIES = urllib.request.getproxies()
 # 'url' — что выбрал пользователь, 'local' — адрес посредника, режущего ClientHello
 # (см. frag_proxy). Наружу отдаём local, если он есть: сам посредник ходит через url.
 _state = {'mode': MODE_AUTO, 'url': None, 'fragment': False, 'local': None}
+
+# Фабрика выбора прокси для Qt — одна на всё время работы, см. _vk_direct_factory.
+_factory = None
 
 
 def system_proxy() -> str | None:
@@ -203,6 +214,19 @@ def _set(mode: str, url: str | None, fragment: bool = False) -> None:
                  mode, safe(url), 'включён' if _state['local'] else 'выключен')
 
 
+def no_proxy_value() -> str:
+    """Список доменов мимо прокси в том виде, в каком его понимают requests,
+    urllib и yt-dlp: имена через запятую."""
+    return ','.join(VK_DIRECT_DOMAINS)
+
+
+def bypasses_proxy(url: str) -> bool:
+    """Идёт ли этот адрес мимо прокси. Сравниваем по имени узла, а не по вхождению
+    строки: «notvk.com» не должен считаться доменом VK."""
+    host = (urlparse(url).hostname or '').lower().rstrip('.')
+    return any(host == d or host.endswith('.' + d) for d in VK_DIRECT_DOMAINS)
+
+
 def _apply_env(mode: str, url: str | None) -> None:
     """Переменные окружения нужны тем частям, куда опции не передашь: urllib
     (загрузка JS-движка) и вложенные процессы."""
@@ -211,6 +235,7 @@ def _apply_env(mode: str, url: str | None) -> None:
     os.environ.pop('NO_PROXY', None)
     if url:
         os.environ['HTTP_PROXY'] = os.environ['HTTPS_PROXY'] = url
+        os.environ['NO_PROXY'] = no_proxy_value()
     elif mode == MODE_OFF:
         # «Без прокси» должно отменять и системные настройки, а не только наши
         os.environ['NO_PROXY'] = '*'
@@ -220,15 +245,66 @@ def _apply_webengine_flags(mode: str, url: str | None) -> None:
     """Окно входа в VK — Chromium внутри QtWebEngine, свои настройки он берёт из
     этой переменной при первом запуске движка."""
     keep = [f for f in os.environ.get('QTWEBENGINE_CHROMIUM_FLAGS', '').split()
-            if not f.startswith('--proxy-server=') and f != '--no-proxy-server']
+            if not f.startswith('--proxy-server=')
+            and not f.startswith('--proxy-bypass-list=')
+            and f != '--no-proxy-server']
     if url:
         keep.append(f'--proxy-server={_without_credentials(url)}')
+        # Само окно входа VK обязано идти напрямую, иначе VK видит вход из-за
+        # границы. Домен пишем дважды: «*.vk.com» покрывает поддомены, но не сам
+        # «vk.com», а вход открывается как раз на нём.
+        bypass = ';'.join(part for d in VK_DIRECT_DOMAINS for part in (d, f'*.{d}'))
+        keep.append(f'--proxy-bypass-list={bypass}')
     elif mode == MODE_OFF:
         keep.append('--no-proxy-server')
     if keep:
         os.environ['QTWEBENGINE_CHROMIUM_FLAGS'] = ' '.join(keep)
     else:
         os.environ.pop('QTWEBENGINE_CHROMIUM_FLAGS', None)
+
+
+def _vk_direct_factory(proxy):
+    """Фабрика выбора прокси для Qt: VK — напрямую, остальное — как задано.
+
+    Фабрика на приложение всегда одна и живёт до его конца: меняем в ней адрес,
+    а саму не пересоздаём. Причина — двойное освобождение. Владение объектом при
+    установке остаётся за Python (`ownedByPython` так и остаётся истиной), но
+    прежнюю фабрику `setApplicationProxyFactory` удаляет по-своему, и второй
+    вызов рушил процесс с повреждением кучи. А второй вызов бывает всегда:
+    сначала настройку применяют на старте, потом ещё раз — когда фоновый поиск
+    находит локальный прокси-клиент.
+
+    Класс объявлен внутри функции, а не рядом с модулем: наследовать
+    QNetworkProxyFactory можно только после импорта PySide6, а тянуть Qt в модуль
+    настроек не хочется — им пользуются и тесты, и консольные части."""
+    from PySide6.QtNetwork import QNetworkProxy, QNetworkProxyFactory
+
+    class _Factory(QNetworkProxyFactory):
+        """Выбор прокси по адресу запроса.
+
+        Одной `setApplicationProxy` тут не хватает: она действует на всё приложение
+        разом, а окно входа VK обязано идти со своего адреса. Ключ
+        `--proxy-bypass-list` решает это только для Chromium и только при старте
+        движка, поэтому исключение держим и здесь — на случай смены прокси уже
+        после запуска."""
+
+        def __init__(self) -> None:
+            super().__init__()
+            self._direct = QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)
+            self._proxy = self._direct
+
+        def queryProxy(self, query):
+            host = (query.peerHostName() or '').lower().rstrip('.')
+            if any(host == d or host.endswith('.' + d) for d in VK_DIRECT_DOMAINS):
+                return [self._direct]
+            return [self._proxy]
+
+    global _factory
+    if _factory is None:
+        _factory = _Factory()
+        QNetworkProxyFactory.setApplicationProxyFactory(_factory)
+    _factory._proxy = proxy
+    return _factory
 
 
 def _apply_qt_proxy(mode: str, url: str | None) -> None:
@@ -238,7 +314,7 @@ def _apply_qt_proxy(mode: str, url: str | None) -> None:
     поднимается вместе с окном — раньше, чем заканчивается фоновый поиск прокси.
     Настройку приложения Qt он, в отличие от ключа, перечитывает на ходу (проверено
     на живом движке), поэтому смену адреса доносим ею."""
-    from PySide6.QtNetwork import QNetworkProxy
+    from PySide6.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
     if url:
         parsed = urlparse(url)
@@ -249,7 +325,11 @@ def _apply_qt_proxy(mode: str, url: str | None) -> None:
     else:
         # «Как в системе»: своего адреса нет, пусть Chromium решает сам
         proxy = QNetworkProxy(QNetworkProxy.ProxyType.DefaultProxy)
-    QNetworkProxy.setApplicationProxy(proxy)
+    # Фабрику не переустанавливаем и не снимаем — она ставится однажды и дальше
+    # только получает новый адрес (см. _vk_direct_factory). Пары к ней в виде
+    # `setApplicationProxy` быть не должно: этот вызов отключает фабрику, и после
+    # возврата из «без прокси» в «свой адрес» весь трафик молча шёл бы напрямую.
+    _vk_direct_factory(proxy)
 
 
 def current() -> str | None:
@@ -288,7 +368,7 @@ def apply_to_session(session: requests.Session) -> None:
     зависит от того, кто и когда правил os.environ."""
     url = effective()
     if url:
-        session.proxies = {'http': url, 'https': url}
+        session.proxies = {'http': url, 'https': url, 'no_proxy': no_proxy_value()}
     elif _state['mode'] == MODE_OFF:
         session.trust_env = False
         session.proxies = {}
@@ -315,7 +395,10 @@ def check(mode: str, manual_url: str = '', user: str = '', password: str = '',
         session.trust_env = False
         probe_url = _start_helper(helper) or url
         if probe_url:
-            session.proxies = {'http': probe_url, 'https': probe_url}
+            # VK проверяем так же, как к нему потом ходим, — мимо прокси. Иначе кнопка
+            # отчитывалась бы об адресе, которым VK никогда не пользуется.
+            session.proxies = {'http': probe_url, 'https': probe_url,
+                               'no_proxy': no_proxy_value()}
 
         bypass = ' с обходом блокировки' if helper and helper.url else ''
         lines = [f'Проверено через {safe(url)}{bypass}:']

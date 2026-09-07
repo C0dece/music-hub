@@ -1,5 +1,6 @@
 import json
 import sys
+import time
 from pathlib import Path
 
 
@@ -204,3 +205,39 @@ def save_vk_token(token_data: dict) -> None:
 def clear_vk_token() -> None:
     if VK_TOKEN_FILE.exists():
         VK_TOKEN_FILE.unlink()
+
+
+# ---------- отметка о блокировке аккаунта VK ----------
+# Живёт в файле, а не в памяти: без этого каждый запуск программы заново
+# принимался долбить VK запросами по аккаунту, который тот уже заблокировал, —
+# ровно тот поток обращений, из-за которого блокировка и держится
+VK_BLOCKED_FILE = CONFIG_DIR / 'vk_blocked.json'
+
+
+def load_vk_blocked() -> dict | None:
+    """Что известно о блокировке: когда заметили и по какому аккаунту.
+
+    None — блокировки нет. Иначе словарь с `user_id` и `since` (время по часам
+    компьютера, только чтобы показать человеку, с каких пор это тянется)."""
+    if VK_BLOCKED_FILE.exists():
+        try:
+            return json.loads(VK_BLOCKED_FILE.read_text(encoding='utf-8'))
+        except (json.JSONDecodeError, OSError):
+            return None
+    return None
+
+
+def save_vk_blocked(user_id: int | None = None) -> None:
+    """Запомнить блокировку. Повторный вызов не трогает уже записанное время:
+    важно, когда блокировку заметили впервые, а не когда напомнили о ней."""
+    if load_vk_blocked() is not None:
+        return
+    ensure_dirs()
+    data = {'user_id': user_id, 'since': time.time()}
+    VK_BLOCKED_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
+def clear_vk_blocked() -> None:
+    """Блокировку сняли (или человек вошёл другим аккаунтом) — забываем."""
+    if VK_BLOCKED_FILE.exists():
+        VK_BLOCKED_FILE.unlink()

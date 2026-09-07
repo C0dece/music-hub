@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 from .. import config
 from . import proxy
 from .async_task import run_async
-from .vk_client import check_web_session
+from .vk_client import VkAccountBlocked, check_web_session
 from .vk_oauth_login import AUTH_URL, _extract_token, _verify_and_build_token
 
 logger = logging.getLogger(__name__)
@@ -183,6 +183,11 @@ class VkWebLoginDialog(QDialog):
         self._session_handled = False
         self._token_pending = False
         self._session_tries = 0
+        # Исчерпав попытки, окно возвращает человека на сайт VK. Эта загрузка сама по
+        # себе поднимает `_on_session_ready`, и раньше та обнуляла счётчик — выходил
+        # вечный круг по три проверки каждые 8-9 секунд (в журнале 18 повторов подряд).
+        # Теперь новый круг начинается только по осознанному нажатию «Продолжить»
+        self._awaiting_user_continue = False
         # Ждём ли сейчас страницу выдачи прав Kate Mobile
         self._awaiting_oauth = False
         # Подтверждённый токен. Он живёт дольше отката состояния: когда проверка сессии
@@ -233,7 +238,7 @@ class VkWebLoginDialog(QDialog):
         self._continue_btn = QPushButton('Продолжить')
         self._continue_btn.setToolTip('Нажмите, если вы уже вошли, а приложение этого не заметило')
         self._continue_btn.setEnabled(False)
-        self._continue_btn.clicked.connect(self._on_session_ready)
+        self._continue_btn.clicked.connect(self._on_continue_clicked)
         row.addWidget(self._continue_btn)
         # Страховка: если VK опять сменит домен редиректа, токен всё равно виден в адресе
         self._take_token_btn = QPushButton('Взять токен из адреса')
@@ -334,6 +339,15 @@ class VkWebLoginDialog(QDialog):
         logger.warning('VkWebLoginDialog: процесс отрисовки упал (%s, код %s)', status, exit_code)
         self._status.setText('Страница VK не открылась. Нажмите «Сбросить вход» и попробуйте снова.')
 
+    def _on_continue_clicked(self) -> None:
+        """Нажатие «Продолжить» — единственный повод начать проверки заново.
+
+        Автоматические поводы (пришла кука, догрузилась страница) намеренно не в счёт:
+        они срабатывают на той же самой странице, куда окно уводит после неудачи, и
+        раньше кружили проверку сессии бесконечно."""
+        self._awaiting_user_continue = False
+        self._on_session_ready()
+
     def _on_session_ready(self) -> None:
         """Веб-сессия есть. Дальше нужен токен — либо уже сохранённый, либо новый."""
         if self._session_handled:
@@ -346,6 +360,11 @@ class VkWebLoginDialog(QDialog):
                 'Вход ещё не завершён: VK не выдал сессию сайта. Откройте свою страницу VK '
                 'в этом окне (лента, музыка), а потом нажмите «Продолжить».')
             self._view.setUrl(QUrl(VK_SITE_URL))
+            return
+        if self._verified_token and self._awaiting_user_continue:
+            # Круг проверок уже отработал вхолостую. Ждём именно нажатия «Продолжить»:
+            # сама по себе загрузка страницы ничего не меняет, а повтор по ней уводил
+            # окно в бесконечный цикл обращений к VK
             return
         self._session_handled = True
         self._save_cookies()
@@ -442,6 +461,19 @@ class VkWebLoginDialog(QDialog):
         if error or not ok:
             logger.debug('VkWebLoginDialog: веб-сессия не подтвердилась (ok=%s, error=%r, попытка %d)',
                          ok, error, self._session_tries)
+            if isinstance(error, VkAccountBlocked):
+                # Повторы тут бессмысленны по определению: VK отвечает «заблокирован» и
+                # сайту, и API, а чинится это только на стороне VK. Молотить его дальше
+                # незачем — за такое и прилетает
+                self._session_handled = False
+                self._awaiting_user_continue = True
+                # Не `str(error)`: там три абзаца и отсылка к кнопке из главного окна,
+                # которой здесь нет. Человеку в этом окне нужно короткое «делать нечего»
+                self._status.setText(
+                    'VK заблокировал аккаунт, музыка недоступна. Повторный вход не поможет: '
+                    'откройте vk.com в обычном браузере и снимите блокировку там, потом '
+                    'нажмите «Продолжить».')
+                return
             if self._session_tries < _SESSION_RETRIES:
                 # Куки могли ещё не доехать из движка в файл — перечитываем свежие и
                 # пробуем снова, вместо того чтобы объявлять отказ по первому ответу
@@ -453,6 +485,7 @@ class VkWebLoginDialog(QDialog):
             # `_token_pending` намеренно остаётся поднятым: токен у нас уже есть и
             # подтверждён, второй раз выдавать права незачем
             self._session_handled = False
+            self._awaiting_user_continue = True
             self._status.setText(
                 'Токен получен, но VK не отдаёт музыку: сессии сайта нет. Так бывает, если вход '
                 'прошёл только через VK ID. Откройте свою страницу VK в этом окне и нажмите '
@@ -480,6 +513,7 @@ class VkWebLoginDialog(QDialog):
         self._session_handled = False
         self._token_pending = False
         self._session_tries = 0
+        self._awaiting_user_continue = False
         self._awaiting_oauth = False
         self._verified_token = None
         self._continue_btn.setEnabled(False)
