@@ -1,0 +1,50 @@
+{
+  "contents": {
+    "singleColumnBrowseResultsRenderer": {
+      "tabs": [{"tabRenderer": {"content": {"sectionListRenderer": {"contents": [
+        {"musicCarouselShelfRenderer": {
+          "header": {"musicCarouselShelfBasicHeaderRenderer": {
+            "title": {"runs": [{"text": "Слушать снова"}]}}},
+          "contents": [
+            {"musicResponsiveListItemRenderer": {
+              "thumbnail": {"musicThumbnailRenderer": {"thumbnail": {"thumbnails": [
+                {"url": "https://lh3.googleusercontent.com/small=w60", "width": 60},
+                {"url": "https://lh3.googleusercontent.com/big=w226", "width": 226}]}}},
+              "flexColumns": [
+                {"musicResponsiveListItemFlexColumnRenderer": {
+                  "text": {"runs": [{"text": "Sextape"}]}}},
+                {"musicResponsiveListItemFlexColumnRenderer": {
+                  "text": {"runs": [
+                    {"text": "Deftones"}, {"text": " • "},
+                    {"text": "Saturday Night Wrist"}, {"text": " • "},
+                    {"text": "4:03"}]}}}],
+              "playlistItemData": {"videoId": "sSAt1Ux1ODA"}}},
+            {"musicResponsiveListItemRenderer": {
+              "flexColumns": [
+                {"musicResponsiveListItemFlexColumnRenderer": {
+                  "text": {"runs": [{"text": "Numb"}]}}},
+                {"musicResponsiveListItemFlexColumnRenderer": {
+                  "text": {"runs": [{"text": "Linkin Park"}, {"text": " • "},
+                                    {"text": "3:07"}]}}}],
+              "playlistItemData": {"videoId": "kXYiU_JCYtU"}}}]}},
+        {"musicCarouselShelfRenderer": {
+          "header": {"musicCarouselShelfBasicHeaderRenderer": {
+            "title": {"runs": [{"text": "Ваши плейлисты"}]}}},
+          "contents": [
+            {"musicTwoRowItemRenderer": {
+              "thumbnailRenderer": {"musicThumbnailRenderer": {"thumbnail": {"thumbnails": [
+                {"url": "https://lh3.googleusercontent.com/pl=w226"}]}}},
+              "title": {"runs": [{"text": "Вечерний рок"}]},
+              "subtitle": {"runs": [{"text": "Плейлист"}, {"text": " • "},
+                                    {"text": "42 трека"}]},
+              "navigationEndpoint": {"browseEndpoint": {
+                "browseId": "VLPLabcdef1234567890"}}}},
+            {"musicTwoRowItemRenderer": {
+              "title": {"runs": [{"text": "Микс: Deftones"}]},
+              "subtitle": {"runs": [{"text": "Радио"}]},
+              "navigationEndpoint": {"watchEndpoint": {
+                "videoId": "sSAt1Ux1ODA", "playlistId": "RDAMVMsSAt1Ux1ODA"}}}}]}}
+      ]}}}}]
+    }
+  }
+}

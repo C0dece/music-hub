@@ -1,0 +1,22 @@
+{
+  "contents": {"singleColumnMusicWatchNextResultsRenderer": {"tabbedRenderer": {
+    "watchNextTabbedResultsRenderer": {"tabs": [{"tabRenderer": {"content": {
+      "musicQueueRenderer": {"content": {"playlistPanelRenderer": {"contents": [
+        {"playlistPanelVideoRenderer": {
+          "title": {"runs": [{"text": "Sextape"}]},
+          "longBylineText": {"runs": [{"text": "Deftones"}, {"text": " • "},
+                                      {"text": "Альбом"}]},
+          "lengthText": {"runs": [{"text": "4:03"}]},
+          "thumbnail": {"thumbnails": [{"url": "https://i.ytimg.com/vi/sSAt1Ux1ODA/mq.jpg"}]},
+          "videoId": "sSAt1Ux1ODA"}},
+        {"playlistPanelVideoRenderer": {
+          "title": {"simpleText": "Digital Bath"},
+          "longBylineText": {"simpleText": "Deftones • White Pony"},
+          "lengthText": {"simpleText": "4:15"},
+          "videoId": "MPlqSJ4gGgg"}},
+        {"playlistPanelVideoRenderer": {
+          "title": {"simpleText": "Sextape"},
+          "longBylineText": {"simpleText": "Deftones"},
+          "videoId": "sSAt1Ux1ODA"}}
+      ]}}}}}}]}}}}
+}

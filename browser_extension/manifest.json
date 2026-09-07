@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Music Hub — отправка в приложение",
+  "version": "1.0.0",
+  "description": "Отправляет ссылку с YouTube или VK в настольное приложение Music Hub: играть, в очередь, добавить в VK.",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "storage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Music Hub",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
