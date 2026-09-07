@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Music Hub</title>
+  <style>
+    body { width: 260px; margin: 0; padding: 12px; font: 13px system-ui, sans-serif;
+           background: #14171e; color: #e6e9f0; }
+    h1 { font-size: 14px; margin: 0 0 8px; }
+    .now { color: #9aa3b5; margin-bottom: 10px; min-height: 32px; }
+    button { width: 100%; margin-bottom: 6px; padding: 7px 10px; border: 0; border-radius: 6px;
+             background: #3d7fe0; color: #fff; font: inherit; cursor: pointer; }
+    button.secondary { background: #1c2029; color: #e6e9f0; border: 1px solid #2b3040; }
+    button:disabled { opacity: .5; cursor: default; }
+    .msg { margin-top: 8px; color: #9aa3b5; min-height: 16px; }
+    a { color: #6ea8ff; }
+  </style>
+</head>
+<body>
+  <h1>Music Hub</h1>
+  <div class="now" id="now">Проверяю приложение…</div>
+  <button id="play">Играть</button>
+  <button id="enqueue" class="secondary">В очередь</button>
+  <button id="add_to_vk" class="secondary">Добавить в VK</button>
+  <button id="open" class="secondary">Открыть в приложении</button>
+  <div class="msg" id="msg"></div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
