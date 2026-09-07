@@ -106,6 +106,71 @@ class KeeperTests(unittest.TestCase):
         k.reset()
         self.assertTrue(k.try_restore())
 
+    # ---------- профилактика ----------
+    def test_preventive_visit_does_not_shout_about_success(self):
+        """Профилактика прошла — снаружи тишина.
+
+        Сигнал `restored` означает «сессия вернулась», и окно по нему перечитывает
+        списки. Но здесь сессия никуда не девалась: заход был именно потому, что она
+        жива. Сигнал тут был бы ложью и лишней перезагрузкой списков на ровном месте."""
+        k = self.keeper()
+        out = self.outcome(k)
+
+        self.assertTrue(k.refresh())
+        self.engines[0].on_cookies(session_cookie())
+        self.checks[0](True, None)
+
+        self.assertEqual(out['restored'], 0)
+        self.assertEqual(out['failed'], [])
+        self.assertEqual(len(self.saved), 1)     # куки всё-таки обновились
+        self.assertTrue(self.engines[0].closed)
+        self.assertFalse(k.running)
+
+    def test_failed_preventive_visit_is_silent_too(self):
+        """Не вышло — тоже молчим: чинить нечего, сессия жива.
+
+        `failed` окно понимает как «вход потерян» и начинает починку. Запустить её
+        из-за неудачного профилактического захода значило бы сломать работающее."""
+        k = self.keeper()
+        out = self.outcome(k)
+
+        k.refresh()
+        self.engines[0].on_error('VK не открылся')
+
+        self.assertEqual(out['failed'], [])
+        self.assertEqual(out['restored'], 0)
+
+    def test_failed_preventive_visit_does_not_eat_repair_attempts(self):
+        """Промахи профилактики не копятся в серию, закрывающую путь починке.
+
+        Серия из MAX_ATTEMPTS отправляет keeper в получасовое молчание. Она для того,
+        чтобы не долбить недоступный VK попытками починки. Профилактика к этой серии
+        отношения не имеет: за сутки её промахи набрали бы лимит, и настоящая
+        поломка осталась бы без единой попытки."""
+        k = self.keeper()
+        for _ in range(keeper_mod.MAX_ATTEMPTS):
+            self.assertTrue(k.refresh())
+            self.engines[-1].on_error('VK не открылся')
+            k._last_try = 0.0                # пауза между попытками тут не проверяется
+        # Лимит не выбран — починка по-прежнему доступна
+        self.assertTrue(k.try_restore())
+
+    def test_block_during_preventive_visit_is_reported(self):
+        """Блокировку молчанием не прикрыть даже на профилактике.
+
+        Это единственная новость, ради которой стоит прервать человека: сама она не
+        пройдёт, а до тех пор все походы в VK бессмысленны."""
+        k = self.keeper()
+        seen = []
+        k.blocked.connect(seen.append)
+
+        k.refresh()
+        self.engines[0].on_cookies(session_cookie())
+        self.checks[0](None, VkAccountBlocked('VK не пускает'))
+
+        self.assertEqual(len(seen), 1)
+        self.assertFalse(k.refresh())         # дальше keeper не ходит совсем
+
     # ---------- неудачи ----------
     def test_no_session_cookie_means_failure_not_a_login_window(self):
         k = self.keeper()

@@ -73,6 +73,10 @@ class VkSessionKeeper(QObject):
         # пауза тут ничего не лечит, и попытки прекращаются совсем, до нового входа
         self._blocked = False
         self._running = False
+        # Профилактический заход отличается от починки только тем, что происходит при
+        # живой сессии. Значит, и неудача его безобидна: чинить нечего, жаловаться
+        # некому. Флаг живёт от старта такой попытки до её конца
+        self._preventive = False
         self._timeout = QTimer(self)
         self._timeout.setSingleShot(True)
         self._timeout.timeout.connect(self._on_timeout)
@@ -99,6 +103,26 @@ class VkSessionKeeper(QObject):
         self._attempts = 0
         self._last_try = 0.0
         self._blocked = False
+
+    def refresh(self) -> bool:
+        """Профилактический заход при живой сессии: пусть VK сам продлит свои куки.
+
+        В этом вся разница с `try_restore`: тот чинит уже сломанное, а этот не даёт
+        сломаться. Куки VK живут долго (замер профиля — `remixsid` до сентября 2027),
+        но продлевает их VK только тогда, когда браузером действительно пользуются.
+        Приложение же ходит на сайт запросами из `requests`, а профиль встроенного
+        браузера может не открываться месяцами — и однажды сессия в нём протухает
+        целиком, ровно в тот момент, когда она понадобилась.
+
+        Один заход в сутки на главную — это меньше, чем делает человек, у которого VK
+        просто открыт во вкладке, поэтому подозрительным он не выглядит. А поскольку
+        сессия при этом живая, отказ здесь ничего не значит: серию неудач он не
+        увеличивает и починку не запускает."""
+        self._preventive = True
+        started = self.try_restore()
+        if not started:
+            self._preventive = False
+        return started
 
     def try_restore(self) -> bool:
         """Попробовать вернуть сессию. Возвращает, началась ли попытка.
@@ -182,6 +206,9 @@ class VkSessionKeeper(QObject):
             self._running = False
             self._attempts = MAX_ATTEMPTS
             self._blocked = True
+            # Блокировку молчанием не прикрыть, даже если заход был профилактическим:
+            # это единственная новость, ради которой стоит прерывать человека
+            self._preventive = False
             self.blocked.emit(str(error))
             return
         if error is not None:
@@ -189,6 +216,16 @@ class VkSessionKeeper(QObject):
             return
         if not alive:
             self._finish_failure('сохранённая сессия VK не ожила, нужен вход с паролем')
+            return
+        if self._preventive:
+            # Ровно то, ради чего заход и делался: VK увидел живой браузер и продлил
+            # свои куки сам. Сигнал `restored` не шлём — сессия и не терялась, а
+            # перечитывать списки на ровном месте незачем
+            self._preventive = False
+            self._close_engine()
+            self._running = False
+            self._attempts = 0
+            logger.info('VK keeper: профилактический заход прошёл, куки VK продлены')
             return
         logger.info('VK keeper: сессия VK вернулась сама')
         self._close_engine()
@@ -209,6 +246,16 @@ class VkSessionKeeper(QObject):
         self._timeout.stop()
         self._close_engine()
         self._running = False
+        if self._preventive:
+            # Профилактика не удалась — и ладно: сессия жива, музыка играет, чинить
+            # нечего. Сигнал `failed` здесь был бы прямой ложью — окно показало бы
+            # «сессия потеряна» на совершенно рабочем входе. Попытку из серии тоже
+            # вычитаем: иначе редкие профилактические промахи копились бы и однажды
+            # закрыли доступ настоящей починке, которой эти попытки и нужны
+            self._preventive = False
+            self._attempts = max(0, self._attempts - 1)
+            logger.debug('VK keeper: профилактический заход не удался: %s', reason)
+            return
         logger.info('VK keeper: тихо вернуть сессию не вышло: %s', reason)
         self.failed.emit(reason)
 

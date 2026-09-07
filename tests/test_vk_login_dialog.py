@@ -45,8 +45,26 @@ class Skeleton:
             def emit(self, data):
                 outer.emitted.append(data)
 
+        class _Button:
+            """Кнопка «Продолжить» — теперь часть проверяемого поведения.
+
+            Она гаснет на время круга проверок и обязана вернуться при любом его
+            исходе. Забыть вернуть её — значит оставить человека с просьбой
+            «нажмите Продолжить» и мёртвой кнопкой, а это ровно та жалоба, с
+            которой починка и начиналась."""
+
+            def __init__(self):
+                self.enabled = False
+
+            def setEnabled(self, value):
+                self.enabled = bool(value)
+
+            def isEnabled(self):
+                return self.enabled
+
         self._status = _Status()
         self.logged_in = _Signal()
+        self._continue_btn = _Button()
 
     # ---- подмены внешнего мира ----
     def _save_cookies(self):
@@ -151,7 +169,13 @@ class SessionRetryTests(unittest.TestCase):
         self.assertEqual(page.emitted, [])
         self.assertEqual(page.checks, login_mod._SESSION_RETRIES)
         self.assertIn('сессии сайта нет', page.status)
-        self.assertEqual(page.urls, [login_mod.VK_SITE_URL])
+        # Страницу не трогаем: человек уже стоит на своей странице VK, и `setUrl` на
+        # тот же адрес не менял ничего, кроме мигания. Снаружи это выглядело как
+        # «кнопка просто обновляет страницу» — с этой жалобы починка и началась
+        self.assertEqual(page.urls, [])
+        # А кнопка обязана вернуться: без неё человек остаётся с просьбой нажать
+        # «Продолжить» и нерабочей кнопкой
+        self.assertTrue(page._continue_btn.isEnabled())
 
     def test_token_is_not_requested_twice(self):
         """Ровно то, на что жаловался пользователь: «два раза пришлось заходить в kate».
@@ -276,19 +300,9 @@ class OAuthPageFailureTests(unittest.TestCase):
             self._awaiting_oauth = True
             self._token_pending = False
             self._session_handled = True
-            self.continue_enabled = False
 
         def _on_url_changed(self, url):
             pass
-
-        @property
-        def _continue_btn(self):
-            outer = self
-
-            class _Btn:
-                def setEnabled(self, value):
-                    outer.continue_enabled = value
-            return _Btn()
 
         @property
         def _view(self):
@@ -304,7 +318,7 @@ class OAuthPageFailureTests(unittest.TestCase):
         page = self._Page()
         page._on_load_finished(False)
         self.assertIn('не открылась', page.status)
-        self.assertTrue(page.continue_enabled)
+        self.assertTrue(page._continue_btn.isEnabled())
         # «Продолжить» должен снова повести за токеном, а не считать шаг пройденным
         self.assertFalse(page._session_handled)
         self.assertFalse(page._awaiting_oauth)
@@ -360,6 +374,36 @@ class RetryLoopTests(unittest.TestCase):
         spent = page.checks
         page._on_continue_clicked()
         self.assertGreater(page.checks, spent)
+
+    def test_continue_button_is_dead_while_the_round_runs(self):
+        """Пока круг идёт, кнопка не принимает второе нажатие.
+
+        Круг длится до девяти секунд — три проверки с паузой, — и всё это время на
+        экране не меняется ничего: та же страница, та же доступная кнопка. Человек
+        жал ещё раз и запускал второй круг поверх первого; в журнале это видно как
+        счётчик попыток 1→2→3→1→2→3 подряд. Для VK же это лишний поток обращений —
+        ровно то, из-за чего аккаунт и попадал в блокировку."""
+        page = self._exhausted()
+        self.assertTrue(page._continue_btn.isEnabled())   # круг кончился, кнопка ждёт
+
+        page._continue_btn.setEnabled(True)
+        page.checks = 0
+
+        def slow_check(token_data):
+            page.checks += 1                              # круг пошёл и ещё не кончился
+        page._check_session = slow_check
+
+        page._on_continue_clicked()
+        self.assertFalse(page._continue_btn.isEnabled())
+        self.assertEqual(page.checks, 1)
+
+    def test_continue_button_comes_back_after_a_failed_round(self):
+        """Круг кончился ничем — кнопку возвращаем, иначе выхода у человека нет.
+
+        Текст на экране просит нажать «Продолжить»; погашенная кнопка превращала
+        эту просьбу в издевательство, и оставалось только закрыть окно."""
+        page = self._exhausted()
+        self.assertTrue(page._continue_btn.isEnabled())
 
     def test_blocked_account_stops_at_the_first_answer(self):
         """VK ответил «заблокирован» — повторы бессмысленны, добивать его незачем."""

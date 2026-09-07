@@ -101,7 +101,8 @@ class VkBypassTests(unittest.TestCase):
                     'https://vk.com/',
                     'https://m.vk.ru/audio',
                     'https://login.vk.ru/',
-                    'https://cs9-4.vkuseraudio.net/a.mp3'):
+                    'https://cs9-4.vkuseraudio.net/a.mp3',
+                    'https://sun9-16.vkuserphoto.ru/impg/x.jpg'):
             self.assertTrue(proxy.bypasses_proxy(url), url)
 
     def test_other_hosts_do_not_bypass(self):
@@ -114,15 +115,46 @@ class VkBypassTests(unittest.TestCase):
                     'https://myuserapi.com/'):
             self.assertFalse(proxy.bypasses_proxy(url), url)
 
-    def test_session_gets_no_proxy(self):
-        import requests
-        from requests.utils import should_bypass_proxies
+    def test_session_sends_vk_past_the_proxy(self):
+        """Проверяем маршрут запроса, а не намерение.
 
+        Прежняя версия теста звала `should_bypass_proxies` руками и была зелёной,
+        пока запросы к VK шли через прокси: ключ `no_proxy` в `session.proxies`
+        requests не смотрит. Поэтому спрашиваем ровно то, что спросит requests, —
+        какой прокси выберется для конкретного адреса."""
+        import requests
+        from requests.utils import select_proxy
+
+        proxy._state.update({'mode': proxy.MODE_MANUAL, 'url': 'http://127.0.0.1:9',
+                             'fragment': False, 'local': None})
+        sent = []
+
+        class Recorder(requests.Session):
+            def request(self, method, url, *args, **kwargs):
+                sent.append(kwargs.get('proxies', self.proxies))
+                return None
+
+        session = Recorder()
+        proxy.apply_to_session(session)
+        session.request('GET', 'https://api.vk.ru/method/x')
+        session.request('GET', 'https://www.youtube.com/')
+
+        self.assertIsNone(select_proxy('https://api.vk.ru/method/x', sent[0]))
+        self.assertEqual(select_proxy('https://www.youtube.com/', sent[1]),
+                         'http://127.0.0.1:9')
+
+    def test_repeated_apply_does_not_stack_wrappers(self):
+        """Адрес прокси меняется на ходу, когда фоновый поиск находит локальный
+        клиент, — и `apply_to_session` зовут второй раз. Обёртка должна остаться одна."""
+        import requests
+
+        proxy._state.update({'mode': proxy.MODE_MANUAL, 'url': 'http://127.0.0.1:9',
+                             'fragment': False, 'local': None})
         session = requests.Session()
         proxy.apply_to_session(session)
-        no_proxy = session.proxies.get('no_proxy')
-        self.assertTrue(should_bypass_proxies('https://api.vk.ru/method/x', no_proxy))
-        self.assertFalse(should_bypass_proxies('https://www.youtube.com/', no_proxy))
+        first = session.request
+        proxy.apply_to_session(session)
+        self.assertIs(session.request, first)
 
     def test_chromium_bypass_covers_bare_domain(self):
         """Окно входа открывается на самом vk.com, а «*.vk.com» его не покрывает."""

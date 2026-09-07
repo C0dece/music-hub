@@ -49,9 +49,14 @@ _ENV_VARS = ('HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy')
 # зарубежного адреса, да ещё и меняющегося от запуска к запуску, VK считает угоном
 # и замораживает аккаунт до подтверждения по телефону. В России VK и так открыт,
 # прокси нужен для YouTube, поэтому VK отправляем напрямую.
+# Обложки (`vkuserphoto`) входа не несут, и причина у них другая: их много —
+# замер по журналу, 537 обращений против 416 к самому m.vk.ru, — и гнать этот
+# поток картинок через посредник значит без нужды греть чужой канал и тормозить
+# отрисовку списков.
 VK_DIRECT_DOMAINS = ('vk.com', 'vk.ru', 'vk-cdn.net', 'vk-portal.net',
                      'userapi.com', 'vkuseraudio.net', 'vkuseraudio.com',
-                     'vkuservideo.net', 'vkuservideo.com', 'mycdn.me', 'vkgroup.net')
+                     'vkuservideo.net', 'vkuservideo.com', 'vkuserphoto.ru',
+                     'vkuserphoto.com', 'mycdn.me', 'vkgroup.net')
 
 # Снимок системных настроек делаем до того, как сами начнём писать в окружение:
 # иначе авто-режим на втором вызове находил бы собственный прокси.
@@ -365,13 +370,46 @@ def ytdlp_opts() -> dict:
 
 def apply_to_session(session: requests.Session) -> None:
     """Прокси для requests. Их можно задать и окружением, но явная настройка не
-    зависит от того, кто и когда правил os.environ."""
+    зависит от того, кто и когда правил os.environ.
+
+    Домены VK при этом обязаны идти напрямую (см. VK_DIRECT_DOMAINS), и вот тут
+    у requests ловушка: ключ `no_proxy` внутри `session.proxies` не значит ничего.
+    Обход requests умеет читать только из окружения, а словарь сопоставляет по
+    схеме — `https` находится, `no_proxy` молча пропускается. Замер: с таким
+    словарём `https://m.vk.ru/audio` уходил на `http://127.0.0.1:7897`, из-за чего
+    VK отвечал страницей входа и программа считала сессию потерянной на живом входе.
+
+    Точечные ключи вида `https://vk.ru` тоже не спасают: они требуют перечислить
+    каждый поддомен поимённо, а `api.vk.ru`, `m.vk.ru` и прочие заранее неизвестны.
+    Поэтому решаем там, где адрес уже на руках, — в самом запросе."""
     url = effective()
     if url:
-        session.proxies = {'http': url, 'https': url, 'no_proxy': no_proxy_value()}
+        session.proxies = {'http': url, 'https': url}
+        _teach_session_to_skip_vk(session)
     elif _state['mode'] == MODE_OFF:
         session.trust_env = False
         session.proxies = {}
+
+
+def _teach_session_to_skip_vk(session: requests.Session) -> None:
+    """Пустить запросы к VK мимо прокси, остальные — как задано.
+
+    Подменяем `request` один раз на сессию: повторный вызов `apply_to_session`
+    (адрес прокси меняется, когда фоновый поиск находит локальный клиент) не должен
+    наматывать обёртку на обёртку."""
+    if getattr(session, '_vk_direct', False):
+        return
+    session._vk_direct = True
+    original = session.request
+
+    def request(method, url, *args, **kwargs):
+        if bypasses_proxy(url):
+            # None по обеим схемам — это именно «напрямую», а не «возьми
+            # системные»: пустой словарь requests дополнил бы из окружения
+            kwargs.setdefault('proxies', {'http': None, 'https': None})
+        return original(method, url, *args, **kwargs)
+
+    session.request = request
 
 
 def check(mode: str, manual_url: str = '', user: str = '', password: str = '',

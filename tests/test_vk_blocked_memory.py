@@ -109,3 +109,75 @@ class BlockedMemoryTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class BlockedExpiryTest(unittest.TestCase):
+    """Отметка о блокировке живёт сутки, а не вечно.
+
+    Блокировки VK почти всегда снимаются, и узнать об этом можно только попыткой.
+    Вечная отметка означала бы, что программа молчит про «заблокирован» на аккаунте,
+    который VK давно пустил обратно, — и лечится это только удалением файла руками."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self._saved = config.VK_BLOCKED_FILE
+        config.VK_BLOCKED_FILE = Path(self._tmp.name) / 'vk_blocked.json'
+
+    def tearDown(self):
+        config.VK_BLOCKED_FILE = self._saved
+        self._tmp.cleanup()
+
+    def test_no_mark_is_not_expired(self):
+        """Нечему истекать: отметки нет, и обходить нечего."""
+        self.assertFalse(config.vk_blocked_expired())
+
+    def test_fresh_mark_holds(self):
+        config.save_vk_blocked(1)
+        self.assertFalse(config.vk_blocked_expired())
+
+    def test_day_old_mark_expires(self):
+        import time
+        old = {'user_id': 1, 'since': time.time() - config.VK_BLOCKED_TTL - 1}
+        self.assertTrue(config.vk_blocked_expired(old))
+
+    def test_mark_without_time_expires(self):
+        """Отметка без даты — из старой версии. Считаем её просроченной.
+
+        Иначе такой файл стал бы вечным запретом: даты нет, сравнивать не с чем,
+        и аккаунт остался бы «заблокированным» навсегда."""
+        self.assertTrue(config.vk_blocked_expired({'user_id': 1}))
+
+
+class RefreshMarkTest(unittest.TestCase):
+    """Метка профилактического захода: не чаще раза в сутки, и переживает перезапуск."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self._saved = config.VK_REFRESH_FILE
+        config.VK_REFRESH_FILE = Path(self._tmp.name) / 'vk_refresh.json'
+
+    def tearDown(self):
+        config.VK_REFRESH_FILE = self._saved
+        self._tmp.cleanup()
+
+    def test_first_run_is_due(self):
+        """Метки нет — значит, неизвестно, когда браузер последний раз бывал на VK.
+
+        Это ровно тот случай, ради которого заход и придуман."""
+        self.assertEqual(config.load_vk_refresh(), 0.0)
+        self.assertTrue(config.vk_refresh_due())
+
+    def test_fresh_visit_is_not_due(self):
+        config.save_vk_refresh()
+        self.assertFalse(config.vk_refresh_due())
+
+    def test_day_old_visit_is_due_again(self):
+        import time
+        config.save_vk_refresh(time.time() - config.VK_REFRESH_INTERVAL - 1)
+        self.assertTrue(config.vk_refresh_due())
+
+    def test_broken_file_does_not_stop_the_visit(self):
+        """Испорченный файл не должен молча отменять профилактику навсегда."""
+        config.VK_REFRESH_FILE.write_text('не json', encoding='utf-8')
+        self.assertEqual(config.load_vk_refresh(), 0.0)
+        self.assertTrue(config.vk_refresh_due())

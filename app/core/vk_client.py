@@ -228,6 +228,12 @@ def _load_vk_cookies_from_file(session: requests.Session) -> bool:
     except OSError:
         logger.exception('VkClient: не смог прочитать %s', config.VK_COOKIES_FILE)
         return False
+    # Файл читается с `ignore_expires=True` — иначе сессионные куки, записанные без
+    # срока, до нас бы не доехали. Но платой за это шла отправка в VK всего протухшего,
+    # что накопилось: замер файла — семь мёртвых кук, среди них `httoken` на четырёх
+    # доменах VK. Живой браузер такого не шлёт, а протухший `httoken` VK встречает
+    # ответом «войдите» на совершенно целой сессии. Выбрасываем их здесь, после чтения
+    jar.clear_expired_cookies()
     for cookie in jar:
         session.cookies.set_cookie(cookie)
     _mirror_session_cookie(session)

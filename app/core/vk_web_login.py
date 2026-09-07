@@ -108,7 +108,15 @@ def merge_cookies_to_file(cookies) -> int:
     одноимённую старую, остальные остаются лежать.
 
     Ключ — (домен, путь, имя): именно так куки различает и сам браузер, поэтому
-    `remixsid` для `.vk.ru` и для `.vk.com` не затирают друг друга."""
+    `remixsid` для `.vk.ru` и для `.vk.com` не затирают друг друга.
+
+    Слияние без уборки копило мусор: замер файла — 65 кук против 48 в профиле, и
+    среди лишних 11 одноразовых `remixq_*` (ключи проверок), `pow_cookie`, `cookietest`
+    и, главное, **семь просроченных**, включая `httoken` для четырёх доменов VK. Читаем
+    мы файл с `ignore_expires=True`, то есть отправляли этот мусор в VK при каждом
+    запросе: живой браузер такого набора не шлёт никогда, а протухший `httoken` — прямая
+    причина ответа «войдите» на целой сессии. Поэтому перед записью выкидываем
+    просроченное — ровно то, что сделал бы и сам браузер."""
     jar = http.cookiejar.MozillaCookieJar(str(config.VK_COOKIES_FILE))
     if config.VK_COOKIES_FILE.exists():
         try:
@@ -117,8 +125,21 @@ def merge_cookies_to_file(cookies) -> int:
             logger.debug('merge_cookies_to_file: прежний файл кук не прочитался, пишу заново')
     for qc in cookies:
         jar.set_cookie(_to_py_cookie(qc) if isinstance(qc, QNetworkCookie) else qc)
+    dropped = _drop_expired(jar)
+    if dropped:
+        logger.debug('merge_cookies_to_file: выбросил %d протухших кук', dropped)
     jar.save(ignore_discard=True, ignore_expires=True)
     return len(jar)
+
+
+def _drop_expired(jar: http.cookiejar.CookieJar) -> int:
+    """Убрать из набора куки, срок которых уже вышел. Возвращает, сколько выбросили.
+
+    `clear_expired_cookies()` у CookieJar делает ровно это, но молча — а нам полезно
+    видеть в журнале, что уборка случилась и сколько мусора накопилось."""
+    before = len(jar)
+    jar.clear_expired_cookies()
+    return before - len(jar)
 
 
 def mask_token(url: str) -> str:
@@ -344,8 +365,14 @@ class VkWebLoginDialog(QDialog):
 
         Автоматические поводы (пришла кука, догрузилась страница) намеренно не в счёт:
         они срабатывают на той же самой странице, куда окно уводит после неудачи, и
-        раньше кружили проверку сессии бесконечно."""
+        раньше кружили проверку сессии бесконечно.
+
+        Кнопку на время круга гасим. Круг длится до 9 секунд (три проверки с паузой),
+        и внешне за это время не менялось ничего: человек видел ту же страницу и ту же
+        доступную кнопку, жал ещё раз — и запускал второй круг поверх первого. В журнале
+        это видно как счётчик попыток 1→2→3→1→2→3 подряд."""
         self._awaiting_user_continue = False
+        self._continue_btn.setEnabled(False)
         self._on_session_ready()
 
     def _on_session_ready(self) -> None:
@@ -359,7 +386,14 @@ class VkWebLoginDialog(QDialog):
             self._status.setText(
                 'Вход ещё не завершён: VK не выдал сессию сайта. Откройте свою страницу VK '
                 'в этом окне (лента, музыка), а потом нажмите «Продолжить».')
-            self._view.setUrl(QUrl(VK_SITE_URL))
+            # Кнопку возвращаем: без этого нажатие гасило её насовсем, и человек
+            # оставался с просьбой «нажмите Продолжить» и нерабочей кнопкой
+            self._continue_btn.setEnabled(True)
+            if not _is_vk_url(self._view.url().toString()):
+                # Уводим на VK только если человек ушёл с сайта совсем. Перезагрузка
+                # его собственной страницы ничего не чинит и сбрасывает то, что он там
+                # успел открыть
+                self._view.setUrl(QUrl(VK_SITE_URL))
             return
         if self._verified_token and self._awaiting_user_continue:
             # Круг проверок уже отработал вхолостую. Ждём именно нажатия «Продолжить»:
@@ -467,6 +501,7 @@ class VkWebLoginDialog(QDialog):
                 # незачем — за такое и прилетает
                 self._session_handled = False
                 self._awaiting_user_continue = True
+                self._continue_btn.setEnabled(True)
                 # Не `str(error)`: там три абзаца и отсылка к кнопке из главного окна,
                 # которой здесь нет. Человеку в этом окне нужно короткое «делать нечего»
                 self._status.setText(
@@ -486,11 +521,15 @@ class VkWebLoginDialog(QDialog):
             # подтверждён, второй раз выдавать права незачем
             self._session_handled = False
             self._awaiting_user_continue = True
+            self._continue_btn.setEnabled(True)
             self._status.setText(
                 'Токен получен, но VK не отдаёт музыку: сессии сайта нет. Так бывает, если вход '
-                'прошёл только через VK ID. Откройте свою страницу VK в этом окне и нажмите '
-                '«Продолжить».')
-            self._view.setUrl(QUrl(VK_SITE_URL))
+                'прошёл только через VK ID. Откройте свою страницу VK в этом окне (лента, '
+                'музыка) и нажмите «Продолжить».')
+            # Страницу больше не перезагружаем. Человек уже стоит на своей странице VK —
+            # `setUrl` на тот же адрес не менял ничего, кроме мигания, и выглядел как
+            # «кнопка просто обновляет страницу». Если он ушёл со своей страницы, текст
+            # выше просит вернуться; если стоит на ней — терять её незачем
             return
         count = self._save_cookies()
         self._status.setText(f'Готово, сохранено {count} куки.')

@@ -11,6 +11,7 @@
 """
 import http.cookiejar
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -21,12 +22,16 @@ from app.core import vk_client
 from app.core.vk_web_login import _is_site_domain, merge_cookies_to_file
 
 
-def cookie(name='remixsid', domain='.vk.ru', value='sid-value'):
-    """Кука в том виде, в каком её кладёт в мешок сам http.cookiejar."""
+def cookie(name='remixsid', domain='.vk.ru', value='sid-value', expires=None):
+    """Кука в том виде, в каком её кладёт в мешок сам http.cookiejar.
+
+    `expires` в прошлом даёт протухшую куку: файл читается с `ignore_expires=True`
+    (иначе сессионные куки, записанные без срока, до нас бы не доехали), и такие
+    мертвецы раньше уезжали в VK вместе с живыми."""
     return http.cookiejar.Cookie(
         version=0, name=name, value=value, port=None, port_specified=False,
         domain=domain, domain_specified=True, domain_initial_dot=domain.startswith('.'),
-        path='/', path_specified=True, secure=True, expires=None, discard=False,
+        path='/', path_specified=True, secure=True, expires=expires, discard=False,
         comment=None, comment_url=None, rest={})
 
 
@@ -214,6 +219,25 @@ class MergeSaveTests(unittest.TestCase):
     def test_missing_file_is_just_a_first_save(self):
         merge_cookies_to_file([cookie(value='first')])
         self.assertEqual(self.names(), {'remixsid': 'first'})
+
+    def test_expired_cookies_are_dropped_on_save(self):
+        """Файл только пополнялся, и мусор в нём копился без конца.
+
+        Замер рабочего файла: 65 кук против 48 в профиле браузера, и семь из них
+        протухшие — среди них `httoken` на четырёх доменах VK. Живой браузер такого
+        не шлёт, а протухший `httoken` VK встречает ответом «войдите» на совершенно
+        целой сессии. Это и есть один из источников повторяющегося «вход слетел»."""
+        dead = time.time() - 3600
+        merge_cookies_to_file([cookie(value='live'),
+                               cookie(name='httoken', value='stale', expires=dead)])
+        saved = self.names()
+        self.assertIn('remixsid', saved)          # живое на месте
+        self.assertNotIn('httoken', saved)        # мёртвое выброшено
+
+    def test_a_session_cookie_without_expiry_survives(self):
+        """Кука без срока — не протухшая, а сессионная. Выбросить её значит убить вход."""
+        merge_cookies_to_file([cookie(value='live', expires=None)])
+        self.assertEqual(self.names(), {'remixsid': 'live'})
 
 
 class BlockedAccountTests(unittest.TestCase):
