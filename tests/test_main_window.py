@@ -8,7 +8,9 @@
 """
 import os
 import tempfile
+import time
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from PySide6.QtCore import QThreadPool
@@ -78,6 +80,15 @@ class MainWindowTests(unittest.TestCase):
             config, 'load_settings', lambda: dict(config.DEFAULT_SETTINGS)))
         self._patches.append(mock.patch.object(config, 'save_settings',
                                                lambda settings: None))
+        # Отметку о блокировке уводим во временную папку. Без этого тесты писали её в
+        # настоящий config/ живого пользователя — с его собственным user_id, взятым из
+        # настоящего vk_token.json. Программа при следующем запуске честно читала эту
+        # отметку и объявляла аккаунт заблокированным: прогон тестов оставлял человека
+        # без музыки до нажатия «мой аккаунт разблокирован»
+        self._blocked_tmp = tempfile.TemporaryDirectory()
+        self._patches.append(mock.patch.object(
+            config, 'VK_BLOCKED_FILE',
+            Path(self._blocked_tmp.name) / 'vk_blocked.json'))
         # Обложки едут по сети и переживают тест, который их заказал: ответ
         # приходит уже в чужой settle() и валит его таймаутами. Здесь нужны не
         # картинки, а проводка, поэтому загрузку закрываем на весь файл
@@ -101,6 +112,7 @@ class MainWindowTests(unittest.TestCase):
         for patch in self._patches:
             patch.stop()
         store_mod._instance = self._saved_instance
+        self._blocked_tmp.cleanup()
         for suffix in ('', '-wal', '-shm'):
             try:
                 os.unlink(self.db_path + suffix)
@@ -660,6 +672,70 @@ class MainWindowTests(unittest.TestCase):
         with mock.patch.object(self.window._vk_panel, 'show_session_lost') as lost,                 mock.patch.object(self.window._vk_panel, 'show_account_blocked'):
             self.window._on_vk_account_blocked('заблокирован')
         lost.assert_not_called()
+
+    def test_tests_never_touch_the_real_blocked_mark(self):
+        """Прогон тестов не должен оставлять человека без музыки.
+
+        Так и было: `_on_vk_account_blocked` звал `save_vk_blocked`, а тот писал в
+        настоящий `config/`, подставляя user_id из настоящего `vk_token.json`. Отметка
+        переживала прогон, и следующий запуск программы честно объявлял живой аккаунт
+        заблокированным. Ловушка была невидимой — её никто не проверял."""
+        self.assertNotEqual(config.VK_BLOCKED_FILE, config.CONFIG_DIR / 'vk_blocked.json')
+        with mock.patch.object(self.window._vk_panel, 'show_account_blocked'):
+            self.window._on_vk_account_blocked('заблокирован')
+        self.assertFalse((config.CONFIG_DIR / 'vk_blocked.json').exists(),
+                         'тест записал отметку о блокировке в настоящий config/')
+
+    def _auto_login(self):
+        """Настоящий `_try_auto_vk_login`.
+
+        Брать его у класса нельзя: QUIET заглушает метод на всё время теста, и из
+        класса пришла бы заглушка, молча ничего не делающая. Достаём исходную функцию
+        из самой заплатки и привязываем к окну."""
+        for patch in self._patches:
+            if getattr(patch, 'attribute', None) == '_try_auto_vk_login':
+                return patch.temp_original.__get__(self.window)
+        self.fail('заглушка _try_auto_vk_login не найдена')
+
+    def test_mark_does_not_replace_the_check_on_startup(self):
+        """Отметка о блокировке не отменяет первую проверку за запуск.
+
+        Сутки в `vk_blocked_expired` отсчитываются от постановки отметки, а программу
+        закрывают на ночь: у того, кто закрывает вечером и открывает утром, срок не
+        выходил никогда. Живой аккаунт объявлялся заблокированным по памяти, и вернуть
+        музыку можно было только кнопкой «мой аккаунт разблокирован»."""
+        with mock.patch.object(config, 'load_vk_blocked', lambda: {'user_id': 1,
+                                                                  'since': time.time()}),                 mock.patch.object(config, 'load_vk_token',
+                                  lambda: {'access_token': 'tok'}),                 mock.patch.object(self.window, '_connect_vk_client') as connect,                 mock.patch.object(self.window, '_on_vk_account_blocked') as blocked:
+            self._auto_login()()
+        connect.assert_called_once()
+        blocked.assert_not_called()
+
+    def test_mark_still_stops_repeat_attempts_within_one_run(self):
+        """Проверка одна на запуск, а не одна на попытку.
+
+        Иначе таймер повторов превратил бы отметку в пустой звук и погнал бы к VK
+        поток запросов по аккаунту, который тот уже пометил, — ровно то поведение,
+        из-за которого блокировку и не снимают."""
+        with mock.patch.object(config, 'load_vk_blocked', lambda: {'user_id': 1,
+                                                                  'since': time.time()}),                 mock.patch.object(config, 'load_vk_token',
+                                  lambda: {'access_token': 'tok'}),                 mock.patch.object(self.window, '_connect_vk_client') as connect,                 mock.patch.object(self.window, '_on_vk_account_blocked') as blocked:
+            auto = self._auto_login()
+            auto()
+            auto()
+        self.assertEqual(connect.call_count, 1)
+        blocked.assert_called_once()
+
+    def test_reading_the_mark_does_not_rewrite_it(self):
+        """Отказ по своей же отметке ничего не записывает.
+
+        Прежде эта ветка звала `_on_vk_account_blocked`, а тот — `save_vk_blocked`:
+        состояние подтверждало само себя, ни разу не спросив VK."""
+        with mock.patch.object(config, 'load_vk_blocked', lambda: {'user_id': 1,
+                                                                  'since': time.time()}),                 mock.patch.object(config, 'save_vk_blocked') as saved,                 mock.patch.object(self.window._vk_panel, 'show_account_blocked'):
+            self.window._vk_blocked_rechecked = True
+            self._auto_login()()
+        saved.assert_not_called()
 
 
 
