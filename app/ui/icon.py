@@ -1,8 +1,8 @@
 """Иконка приложения.
 
-Исходник — SVG: он не мылится на HiDPI и его видно в diff'ах. Растр нужен в двух
+Исходник - SVG: он не мылится на HiDPI и его видно в diff'ах. Растр нужен в двух
 местах: QIcon для окон и .ico для панели задач Windows (её иконку Qt берёт не из
-окна, а из файла, привязанного к процессу — см. app/main.py)."""
+окна, а из файла, привязанного к процессу - см. app/main.py)."""
 import io
 import logging
 import struct
@@ -37,7 +37,7 @@ def render(size: int) -> QPixmap:
 
 
 def app_icon() -> QIcon:
-    """QIcon со всеми размерами. Пустой, если файла иконки нет — не повод падать."""
+    """QIcon со всеми размерами. Пустой, если файла иконки нет - не повод падать."""
     icon = QIcon()
     if not ICON_SVG.is_file():
         logger.warning('icon: нет файла %s', ICON_SVG)
@@ -49,7 +49,7 @@ def app_icon() -> QIcon:
 
 def _png_bytes(size: int) -> bytes:
     # QByteArray держим в переменной: QBuffer хранит на него ссылку, а временный
-    # объект Python успевает умереть раньше буфера — и процесс падает
+    # объект Python успевает умереть раньше буфера - и процесс падает
     data = QByteArray()
     buffer = QBuffer(data)
     buffer.open(QBuffer.WriteOnly)
@@ -60,7 +60,7 @@ def _png_bytes(size: int) -> bytes:
 
 def write_ico(path=None) -> str:
     """Собрать многоразмерный .ico. Qt умеет писать только один размер за раз,
-    поэтому контейнер складываем сами — формат простой, а иконка панели задач
+    поэтому контейнер складываем сами - формат простой, а иконка панели задач
     от этого перестаёт быть мылом."""
     path = path or ICON_ICO
     images = [(size, _png_bytes(size)) for size in _SIZES]
@@ -69,7 +69,7 @@ def write_ico(path=None) -> str:
     out.write(struct.pack('<HHH', 0, 1, len(images)))  # ICONDIR: reserved, type=icon, count
     offset = 6 + 16 * len(images)
     for size, data in images:
-        # 0 в поле размера означает 256 — так задумано в формате
+        # 0 в поле размера означает 256 - так задумано в формате
         out.write(struct.pack('<BBBBHHII', size % 256, size % 256, 0, 0, 1, 32, len(data), offset))
         offset += len(data)
     for _size, data in images:

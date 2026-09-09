@@ -24,14 +24,14 @@ from .widgets import (
 logger = logging.getLogger(__name__)
 
 TAB_TRACKS, TAB_WAVE, TAB_SEARCH, TAB_PLAYLISTS = 0, 1, 2, 3
-# Последняя страница стека — заглушка вместо списков: когда показывать нечего,
+# Последняя страница стека - заглушка вместо списков: когда показывать нечего,
 # там написано почему и лежит кнопка, которая это чинит
 PAGE_TRACKS, PAGE_WAVE, PAGE_SEARCH, PAGE_PLAYLISTS, PAGE_NOTICE = 0, 1, 2, 3, 4
 
 SEARCH_DEBOUNCE_MS = 350   # пока человек печатает, в сеть не ходим
 SEARCH_LIMIT = 60
 
-# Волны: плитки такого же размера, что подборки YouTube, — вкладки соседние,
+# Волны: плитки такого же размера, что подборки YouTube, - вкладки соседние,
 # и разнобой в размерах читался бы как разница по смыслу, которой нет
 WAVE_LIMIT = 24
 # Рекомендации плоским списком, когда каталог волн пуст
@@ -39,7 +39,7 @@ RECOMS_LIMIT = 60
 WAVE_COVER = 104
 WAVE_WIDTH = 132
 WAVE_TITLE_CHARS = 34
-# Один ряд плиток целиком — с обложкой и подписью, — остальное прокруткой.
+# Один ряд плиток целиком - с обложкой и подписью, - остальное прокруткой.
 # Резать плитку пополам нельзя: обрезанная подпись не даёт выбрать волну, а выбор
 # здесь и есть смысл вкладки
 WAVE_ROW_H = WAVE_COVER + 44
@@ -74,7 +74,7 @@ def track_key(track: dict) -> str:
 
 
 def _human_delay(seconds: int) -> str:
-    """«15 секунд», «2 минуты» — по-русски, с правильным окончанием."""
+    """«15 секунд», «2 минуты» - по-русски, с правильным окончанием."""
     if seconds < 60:
         return f'{seconds} с'
     minutes = round(seconds / 60)
@@ -97,14 +97,14 @@ class VkPanel(QWidget):
     download_tracks_requested = Signal(list)  # list[track dict]
     play_tracks_requested = Signal(list, int)  # list[track dict], с какого начинать
     enqueue_tracks_requested = Signal(list, bool)  # list[track dict], «следующим»
-    session_expired = Signal()  # VK отозвал сессию сайта — чип в шапке тоже должен это узнать
+    session_expired = Signal()  # VK отозвал сессию сайта - чип в шапке тоже должен это узнать
     add_progress = Signal(str)  # ход добавления в свою музыку: сигнал, потому что считает фоновый поток
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._client = None
         # Списки VK живут в двух видах: словарь нужен для скачивания и resolve_url,
-        # Track — для показа тем же списком, что и везде в приложении
+        # Track - для показа тем же списком, что и везде в приложении
         self._current_tracks: list[dict] = []
         self._current_playlists: list[dict] = []
         self._found_tracks: list[dict] = []
@@ -113,10 +113,10 @@ class VkPanel(QWidget):
         self._wave_mixes: list[dict] = []
         self._search_tracks: list[Track] = []
         # Волну не тянем при входе: это лишний запрос к VK ради вкладки, на
-        # которую могут и не зайти. Грузим при первом показе, дальше — по кнопке
+        # которую могут и не зайти. Грузим при первом показе, дальше - по кнопке
         self._wave_loaded = False
         self._rows: dict[str, dict] = {}     # uid -> строка VK
-        self._mine_uids: set[str] = set()    # из выдачи поиска — что уже своё
+        self._mine_uids: set[str] = set()    # из выдачи поиска - что уже своё
         self._busy_count = 0
         self._notice_action = None
         # Номер поколения: ответ прежнего запроса не должен затирать новый
@@ -164,7 +164,7 @@ class VkPanel(QWidget):
         # QStackedWidget, а не QTabWidget: поиск и кнопки общие для обеих вкладок,
         # и рамка вкладок вокруг них выглядела бы как отдельная лишняя коробка
         # PagesStack, а не QStackedWidget: обычный держал бы высоту по самой
-        # большой вкладке (волна со скроллом — 168 px), и раздел не сжимался
+        # большой вкладке (волна со скроллом - 168 px), и раздел не сжимался
         # бы даже на пустом списке
         self._stack = PagesStack()
         self._tracks_list = self._make_track_list()
@@ -185,7 +185,7 @@ class VkPanel(QWidget):
         """Каталог волн: сверху плитки подборок, снизу треки выбранной.
 
         Одним списком это не показать: волн у VK много и они разные, а список умеет
-        показать только одну. Плитки — как у подборок YouTube на соседней вкладке:
+        показать только одну. Плитки - как у подборок YouTube на соседней вкладке:
         то же действие должно выглядеть одинаково, в какой бы вкладке ни делалось."""
         page = QWidget()
         box = QVBoxLayout(page)
@@ -198,7 +198,7 @@ class VkPanel(QWidget):
 
         self._wave_row = FlowRow(spacing=10)
         # Каталог в прокрутке с потолком по высоте: волн бывает много, и без потолка
-        # они съедают страницу, оставляя выбранной волне полоску в две строки —
+        # они съедают страницу, оставляя выбранной волне полоску в две строки -
         # а слушают всё-таки её, каталог нужен только чтобы выбрать
         self._wave_area = QScrollArea()
         self._wave_area.setWidget(self._wave_row)
@@ -217,7 +217,7 @@ class VkPanel(QWidget):
         box.addWidget(self._wave_title)
 
         self._wave_list = self._make_track_list()
-        self._wave_list.hide()       # пустой список — пустая рамка, лучше её не рисовать
+        self._wave_list.hide()       # пустой список - пустая рамка, лучше её не рисовать
         box.addWidget(self._wave_list, 1)
         return page
 
@@ -230,7 +230,7 @@ class VkPanel(QWidget):
 
     def _make_track_list(self) -> TrackListWidget:
         """Тот же список треков, что в остальных разделах: обложки, метки,
-        одинаковое контекстное меню. Отметки галочками сменились выделением —
+        одинаковое контекстное меню. Отметки галочками сменились выделением -
         в списке на полторы тысячи строк оно и быстрее, и привычнее."""
         widget = TrackListWidget()
         widget.play_requested.connect(self._play_tracks)
@@ -248,7 +248,7 @@ class VkPanel(QWidget):
 
     def _build_actions(self) -> QWidget:
         # overflow: в низком окне восемь кнопок переносились в три строки и
-        # съедали высоту списка — от него оставалось полторы строки. Теперь
+        # съедали высоту списка - от него оставалось полторы строки. Теперь
         # лишние уезжают под «⋯», а список получает место
         row = FlowRow(spacing=8, align_right=True, overflow=True)
         self._refresh_btn = QPushButton('Обновить')
@@ -290,10 +290,10 @@ class VkPanel(QWidget):
 
         self._download_btn = QPushButton('Скачать выбранное')
         # Ширина фиксирована: текст на кнопке меняется вместе со счётчиком, и без
-        # этого соседние кнопки прыгали бы при каждой галочке. 187 — это ширина
+        # этого соседние кнопки прыгали бы при каждой галочке. 187 - это ширина
         # самого длинного варианта («Скачать выбранное (999)»), измеренная шрифтом
         # темы. Прежние 210 были запасом на глаз, и из-за них вся строка требовала
-        # 777 px при 738 доступных — главная кнопка раздела пряталась под «⋯»
+        # 777 px при 738 доступных - главная кнопка раздела пряталась под «⋯»
         self._download_btn.setMinimumWidth(187)
         self._download_btn.clicked.connect(self._download_selected)
         row.add(self._download_btn)
@@ -317,10 +317,10 @@ class VkPanel(QWidget):
                           'Проверяю сохранённый вход, это займёт пару секунд.')
 
     def set_connect_failed(self, error: str, retry_in: int = 0) -> None:
-        """Связи нет, но сохранённый вход цел — предлагаем повторить попытку.
+        """Связи нет, но сохранённый вход цел - предлагаем повторить попытку.
         Раньше повторить её можно было только перезапуском приложения.
 
-        `retry_in` — через сколько секунд приложение попробует само. Про это стоит
+        `retry_in` - через сколько секунд приложение попробует само. Про это стоит
         сказать вслух: иначе человек видит «не удалось» и думает, что всё замерло
         до его нажатия."""
         self._client = None
@@ -337,11 +337,11 @@ class VkPanel(QWidget):
         logger.debug('VkPanel.set_client: client=%r', client)
         self._client = client
         if not client.has_web_session:
-            # Плейлисты API отдаёт и без сессии сайта, а их содержимое — нет.
+            # Плейлисты API отдаёт и без сессии сайта, а их содержимое - нет.
             # Но просить пароль сразу рано: в профиле встроенного браузера обычно
             # ещё жив вход, и перезаход проходит молча. Пока он идёт, показываем
-            # ожидание, а не кнопку, — иначе человек вводил бы пароль там, где
-            # ничего вводить не нужно. Не вышло — вернёт `show_session_lost`.
+            # ожидание, а не кнопку, - иначе человек вводил бы пароль там, где
+            # ничего вводить не нужно. Не вышло - вернёт `show_session_lost`.
             self._show_restoring()
             self.session_expired.emit()
             return
@@ -355,7 +355,7 @@ class VkPanel(QWidget):
 
         Кнопки здесь нет намеренно: пока автоматика работает, нажимать нечего, а
         предложенный пароль человек ввёл бы зря. Текст обещает не результат, а
-        занятие — обещать успех до того, как он случился, нечестно."""
+        занятие - обещать успех до того, как он случился, нечестно."""
         self._show_notice(
             'Обновляю вход в VK',
             'Сессия сайта VK истекла. Пробую вернуть её сам, пароль, скорее всего, '
@@ -364,7 +364,7 @@ class VkPanel(QWidget):
     def show_account_blocked(self, message: str = '') -> None:
         """VK заблокировал аккаунт: чинить нечего, и предлагать вход было бы обманом.
 
-        Кнопки входа здесь намеренно нет — единственное, что помогает, происходит на
+        Кнопки входа здесь намеренно нет - единственное, что помогает, происходит на
         стороне VK, в обычном браузере. Раньше на этом месте висело «Обновляю вход»,
         и человек ждал починки, которой не могло случиться."""
         self._show_notice(
@@ -378,7 +378,7 @@ class VkPanel(QWidget):
             'Блокировка снята, повторить', self.unblock_requested.emit)
 
     def show_session_lost(self) -> None:
-        """Тихо не вышло: теперь кнопка входа уместна — и другого пути уже нет."""
+        """Тихо не вышло: теперь кнопка входа уместна - и другого пути уже нет."""
         self._show_notice(
             'Сессия сайта VK больше не действует',
             'Вернуть её сам я не смог, музыка недоступна.\n'
@@ -388,7 +388,7 @@ class VkPanel(QWidget):
     # ---------- заглушка вместо списков ----------
     def _show_notice(self, title: str, text: str = '', button_text: str = '',
                      action=None, icon: str = 'radio') -> None:
-        """Показываем причину вместо пустых списков — и кнопку, которая её устраняет."""
+        """Показываем причину вместо пустых списков - и кнопку, которая её устраняет."""
         self._notice.set_icon(icon)
         self._notice.set_title(title)
         self._notice.set_text(text)
@@ -454,7 +454,7 @@ class VkPanel(QWidget):
         client = self._client
         self._wave_loaded = True
         self._wave_hint.setText('Спрашиваю у VK, что он сегодня собрал…')
-        # Клиент постарше умеет только плоский каталог волн — вкладка обязана
+        # Клиент постарше умеет только плоский каталог волн - вкладка обязана
         # работать и с ним, иначе обновление приложения ломается на ровном месте
         fetch = (getattr(client, 'wave_shelves', None)
                  or (lambda limit: client.wave_mixes(limit)))
@@ -466,7 +466,7 @@ class VkPanel(QWidget):
 
     def _run_fetch(self, fn, on_done) -> None:
         # Счётчик, а не флаг: set_client() запускает загрузку треков и плейлистов
-        # одновременно — флаг блокировал бы второй запрос до завершения первого.
+        # одновременно - флаг блокировал бы второй запрос до завершения первого.
         if not self._client:
             return
         client = self._client
@@ -492,8 +492,8 @@ class VkPanel(QWidget):
         """Протухшую сессию сайта VK показываем не как сбой запроса, а как ожидание.
 
         VkSessionExpired приходит, когда VK отправил нас на страницу входа;
-        «permissions to browse» — тот же случай, только на чужом плейлисте. Пароль
-        здесь не спрашиваем: сессия сайта протухает часто, а возвращается сама —
+        «permissions to browse» - тот же случай, только на чужом плейлисте. Пароль
+        здесь не спрашиваем: сессия сайта протухает часто, а возвращается сама -
         кнопка появится, только когда тихий перезаход сдастся."""
         text = str(error)
         if isinstance(error, VkSessionExpired) or 'permissions to browse' in text.lower():
@@ -503,7 +503,7 @@ class VkPanel(QWidget):
         QMessageBox.warning(self, 'VK', f'Не удалось получить данные из VK:\n{text}')
 
     def _remember(self, rows: list[dict]) -> list[Track]:
-        """Track для показа, исходная строка VK — под рукой: скачивание и
+        """Track для показа, исходная строка VK - под рукой: скачивание и
         прямые ссылки по-прежнему работают со словарём клиента."""
         tracks = [from_vk(row) for row in rows]
         for track, row in zip(tracks, rows):
@@ -529,7 +529,7 @@ class VkPanel(QWidget):
         Пусто здесь бывает не случайно: готовые волны (`blocks`) VK отдаёт далеко
         не всем аккаунтам, а полки строятся из его же разметки плейлистов, которой
         тоже может не оказаться. Если не набралось вообще ничего, показываем
-        плоский список раздела `recoms` — это по-прежнему рекомендации самого VK,
+        плоский список раздела `recoms` - это по-прежнему рекомендации самого VK,
         а не поиск, выданный за них (AGENTS.md): меняется форма подачи, а не
         происхождение."""
         self._wave_mixes = mixes
@@ -538,7 +538,7 @@ class VkPanel(QWidget):
             tile = self._wave_tile(mix)
             if tile is not None:
                 self._wave_row.add(tile)
-        # Каталог пуст — плиткам взяться неоткуда, и полоса выбора только занимает место
+        # Каталог пуст - плиткам взяться неоткуда, и полоса выбора только занимает место
         self._wave_area.setVisible(bool(mixes))
         if mixes:
             self._wave_hint.setText(f'Подборок: {len(mixes)}, выберите любую')
@@ -546,7 +546,7 @@ class VkPanel(QWidget):
             return
         client = self._client
         if not hasattr(client, 'recommended_tracks'):
-            # Клиент без рекомендаций — падать из-за этого вкладке незачем: честно
+            # Клиент без рекомендаций - падать из-за этого вкладке незачем: честно
             # говорим, что волн нет, как было до появления запасного пути
             self._fill_wave_recoms([])
             return
@@ -556,7 +556,7 @@ class VkPanel(QWidget):
                         self._fill_wave_recoms)
 
     def _fill_wave_recoms(self, tracks: list[dict]) -> None:
-        """Рекомендации VK плоским списком — когда каталог волн пуст.
+        """Рекомендации VK плоским списком - когда каталог волн пуст.
 
         Заголовок нужен: без плиток над списком иначе не понять, что это вообще
         такое и откуда взялось."""
@@ -603,12 +603,12 @@ class VkPanel(QWidget):
         return apply
 
     def _open_wave(self, mix: dict) -> None:
-        """Треки выбранной волны — тем же путём, что треки плейлиста: это он и есть."""
+        """Треки выбранной волны - тем же путём, что треки плейлиста: это он и есть."""
         self._wave_title.setText(mix.get('title') or 'Волна')
         self._wave_title.show()
         self._wave_hint.setText('Загружаю волну…')
         client = self._client
-        # Подборки теперь трёх родов — раздел, склейка альбомов, волна VK, — и
+        # Подборки теперь трёх родов - раздел, склейка альбомов, волна VK, - и
         # разбираться, какая перед нами, дело клиента, а не панели
         fetch = getattr(client, 'shelf_tracks', None)
         self._run_fetch((lambda: fetch(mix)) if fetch
@@ -628,7 +628,7 @@ class VkPanel(QWidget):
         self._playlists_list.clear()
         for playlist in playlists:
             # Раньше исполнитель показывался вместо количества, и у альбомов число
-            # треков просто пропадало — показываем и то, и другое
+            # треков просто пропадало - показываем и то, и другое
             parts = [playlist.get('title') or 'Плейлист']
             count = playlist.get('count') or 0
             parts.append(f'{count} {_plural_tracks(count)}' if count else 'треки не указаны')
@@ -668,9 +668,9 @@ class VkPanel(QWidget):
              TAB_PLAYLISTS: 'Поиск по плейлистам…'}[index])
         self._add_btn.setVisible(index == TAB_SEARCH)
         if index == TAB_WAVE and not self._wave_loaded and self._client:
-            self._load_wave()          # первый заход на вкладку — за подборкой
+            self._load_wave()          # первый заход на вкладку - за подборкой
         if index == TAB_SEARCH:
-            # На вкладку перешли с уже набранным словом — поищем сразу
+            # На вкладку перешли с уже набранным словом - поищем сразу
             if self._search.text().strip() and not self._found_tracks:
                 self._search_timer.start()
             self._update_counter()
@@ -702,7 +702,7 @@ class VkPanel(QWidget):
             self._start_vk_search(force=True)
 
     def _start_vk_search(self, force: bool = False) -> None:
-        """Глобальный поиск VK — той же веб-сессией, что и своя музыка
+        """Глобальный поиск VK - той же веб-сессией, что и своя музыка
         (audio.search токену Kate Mobile недоступен, см. vk_client.search_tracks)."""
         self._search_timer.stop()
         client = self._client
@@ -717,7 +717,7 @@ class VkPanel(QWidget):
         self._update_counter()
 
         def on_done(rows, error):
-            # Ответ на прежний запрос или на прежний вход — молча выбрасываем
+            # Ответ на прежний запрос или на прежний вход - молча выбрасываем
             if gen != self._search_gen or self._client is not client:
                 return
             self._searching = False
@@ -736,7 +736,7 @@ class VkPanel(QWidget):
         return ids, names
 
     def _is_mine(self, track: dict, ids: set, names: set) -> bool:
-        """VK в выдаче поиска не сообщает, есть ли запись у вас, — сверяемся
+        """VK в выдаче поиска не сообщает, есть ли запись у вас, - сверяемся
         с уже загруженной своей музыкой: сначала по номеру, потом по названию."""
         if self._client is not None and str(track.get('owner_id')) == str(self._client.user_id):
             return True
@@ -752,7 +752,7 @@ class VkPanel(QWidget):
         self._apply_search()
 
     def _mark_found(self) -> None:
-        """Метка «уже в моей музыке» — своя для каждой строки выдачи."""
+        """Метка «уже в моей музыке» - своя для каждой строки выдачи."""
         ids, names = self._my_music_index()
         self._mine_uids = {
             track.uid for track, row in zip(self._search_tracks, self._found_tracks)
@@ -762,7 +762,7 @@ class VkPanel(QWidget):
              for track in self._search_tracks})
 
     def _remark_search(self) -> None:
-        """Своя музыка перечиталась — пометки в выдаче поиска должны догнать её."""
+        """Своя музыка перечиталась - пометки в выдаче поиска должны догнать её."""
         if self._search_tracks:
             self._mark_found()
 
@@ -812,7 +812,7 @@ class VkPanel(QWidget):
                 parts.append(f'не удалось: {len(failed)} ({failed[0]})')
             self._on_add_progress('   ·   '.join(parts))
             if added:
-                self._load_tracks()   # свою музыку перечитываем — пометки обновятся
+                self._load_tracks()   # свою музыку перечитываем - пометки обновятся
 
         self._run_fetch(add_all, done)
 
@@ -868,7 +868,7 @@ class VkPanel(QWidget):
         """Подпись счётчика. Пустая прячется совсем, а не занимает место.
 
         В строке действий она стоит между кнопками, и её 6 px плюс отступ уводили
-        «Скачать выбранное» под «⋯» ровно там, где счётчику нечего сказать, — до
+        «Скачать выбранное» под «⋯» ровно там, где счётчику нечего сказать, - до
         входа в VK."""
         self._counter.setText(text)
         self._counter.setVisible(bool(text))
@@ -892,8 +892,8 @@ class VkPanel(QWidget):
         elif index == TAB_SEARCH and not self._search.text().strip():
             self._set_counter('Введите запрос, поищу во всей музыке VK')
         elif index == TAB_WAVE and not self._wave_tracks:
-            # Каталог есть, волну ещё не выбрали — это не «ничего не найдено».
-            # А пустой каталог — ответ VK, а не наш сбой, и звучать должен так же
+            # Каталог есть, волну ещё не выбрали - это не «ничего не найдено».
+            # А пустой каталог - ответ VK, а не наш сбой, и звучать должен так же
             self._set_counter('Выберите волну' if self._wave_mixes
                                   else 'VK пока не собрал волн для этого аккаунта')
         elif not total:
@@ -917,11 +917,11 @@ class VkPanel(QWidget):
                               else 'Добавить в мою музыку')
 
     # ---------- прослушивание ----------
-    # Играет общий плеер приложения: своё окно предпросмотра здесь больше не нужно —
+    # Играет общий плеер приложения: своё окно предпросмотра здесь больше не нужно -
     # иначе в приложении оказывалось бы два независимых плеера. Прямые ссылки VK
     # по-прежнему запрашиваются лениво, уже внутри PlayerController.
     def _play_tracks(self, tracks, index: int = 0) -> None:
-        """Двойной клик или «Играть» из меню — включаем в общем плеере."""
+        """Двойной клик или «Играть» из меню - включаем в общем плеере."""
         rows = self._rows_for(tracks)
         if rows:
             self.play_tracks_requested.emit(rows, index)
@@ -947,7 +947,7 @@ class VkPanel(QWidget):
             self.enqueue_tracks_requested.emit(rows, False)
 
     def _preview_entry(self, entry: dict) -> None:
-        """Трек из диалога плейлиста — название там уже собрано целиком."""
+        """Трек из диалога плейлиста - название там уже собрано целиком."""
         self.play_tracks_requested.emit([entry], 0)
 
     # ---------- скачивание ----------
@@ -1000,7 +1000,7 @@ class VkPanel(QWidget):
 
 
 def _plural_tracks(count: int) -> str:
-    """«1 трек», «2 трека», «5 треков» — иначе строка выглядит небрежно."""
+    """«1 трек», «2 трека», «5 треков» - иначе строка выглядит небрежно."""
     if 11 <= count % 100 <= 14:
         return 'треков'
     return {1: 'трек', 2: 'трека', 3: 'трека', 4: 'трека'}.get(count % 10, 'треков')

@@ -1,13 +1,13 @@
 """Единая волна: одна очередь, собранная сразу из нескольких источников.
 
-Смысл раздела «Микс» — слушать не «музыку VK» и не «YouTube», а просто музыку:
+Смысл раздела «Микс» - слушать не «музыку VK» и не «YouTube», а просто музыку:
 человек задаёт доли источников (или отдаёт выбор программе), а дальше треки идут
 вперемешку. Ничего своего этот модуль не качает и не ищет: он только просит уже
-существующие части — `VkClient`, `Recommender`/`Discovery` и обход папок в
-`library` — и склеивает ответы в один список.
+существующие части - `VkClient`, `Recommender`/`Discovery` и обход папок в
+`library` - и склеивает ответы в один список.
 
 Qt здесь нет: микс собирается в фоновом потоке (`run_async`) и проверяется
-обычными тестами. Наружу уходит `MixResult` — треки, сколько дал каждый источник
+обычными тестами. Наружу уходит `MixResult` - треки, сколько дал каждый источник
 и честные замечания («вход в VK не выполнен», «YouTube не ответил»), потому что
 молча подменять один источник другим нельзя.
 """
@@ -40,7 +40,7 @@ SOURCE_ORDER = (SOURCE_VK, SOURCE_YOUTUBE, SOURCE_LOCAL)
 SOURCE_TITLES = {SOURCE_VK: 'Музыка VK', SOURCE_YOUTUBE: 'YouTube',
                  SOURCE_LOCAL: 'Свои файлы'}
 
-# Доли по умолчанию: VK — фонотека, YouTube — где ищут новое, файлы отдельно
+# Доли по умолчанию: VK - фонотека, YouTube - где ищут новое, файлы отдельно
 # просить не приходится, они и так есть в VK, поэтому по умолчанию выключены
 DEFAULT_WEIGHTS = {SOURCE_VK: 50, SOURCE_YOUTUBE: 50, SOURCE_LOCAL: 0}
 
@@ -77,11 +77,11 @@ class MixConfig:
 
     @property
     def sources(self) -> list[str]:
-        """Источники, которые человек включил, — вес больше нуля."""
+        """Источники, которые человек включил, - вес больше нуля."""
         return [source for source in SOURCE_ORDER if self.weights.get(source, 0) > 0]
 
     def share(self, source: str) -> int:
-        """Доля источника в процентах — то, что видно в интерфейсе."""
+        """Доля источника в процентах - то, что видно в интерфейсе."""
         total = sum(self.weights.get(s, 0) for s in self.sources)
         if not total or source not in self.sources:
             return 0
@@ -95,7 +95,7 @@ class MixConfig:
 
     @classmethod
     def from_dict(cls, data) -> 'MixConfig':
-        """Настройки из файла. Чего нет или что испорчено — берётся по умолчанию."""
+        """Настройки из файла. Чего нет или что испорчено - берётся по умолчанию."""
         if not isinstance(data, dict):
             return cls()
         weights = data.get('weights')
@@ -113,7 +113,7 @@ class MixConfig:
 def _labelled(rows, kind: str) -> list[Track]:
     """Треки VK с пометкой происхождения.
 
-    Метка живёт в meta и видна в подсказке и журнале — интерфейс она не украшает,
+    Метка живёт в meta и видна в подсказке и журнале - интерфейс она не украшает,
     но и не даёт спутать подборку VK с обычным поиском."""
     tracks = [from_vk(row) for row in rows]
     if kind:
@@ -145,7 +145,7 @@ class MixResult:
 
 
 class Mixer:
-    """Сборщик микса. Все методы ходят в сеть и на диск — только из фона."""
+    """Сборщик микса. Все методы ходят в сеть и на диск - только из фона."""
 
     def __init__(self, store=None, recommender=None, vk_client_provider=None,
                  files_provider=None):
@@ -154,7 +154,7 @@ class Mixer:
         self._vk = vk_client_provider
         self._files = files_provider
         # Тяжёлые списки (фонотека VK, обход папок) держим недолго: пересобрать
-        # микс — обычное дело, а лезть за полутора тысячами треков каждый раз не нужно
+        # микс - обычное дело, а лезть за полутора тысячами треков каждый раз не нужно
         self._cache: dict[str, tuple[float, list]] = {}
         self._rng = random.Random()
 
@@ -169,7 +169,7 @@ class Mixer:
     def auto_config(self) -> MixConfig:
         """«На усмотрение программы»: включить всё, что сейчас работает.
 
-        Файлы добавляем маленькой долей — это тот же материал, что и в VK,
+        Файлы добавляем маленькой долей - это тот же материал, что и в VK,
         и в большом количестве он только вытеснит остальное."""
         available = self.available()
         weights = {SOURCE_VK: 50 if available[SOURCE_VK] else 0,
@@ -183,7 +183,7 @@ class Mixer:
         return MixConfig(weights=weights, mode=MODE_MIXED)
 
     def forget(self) -> None:
-        """Забыть отложенные списки — например, после входа в VK."""
+        """Забыть отложенные списки - например, после входа в VK."""
         self._cache.clear()
 
     def continuation(self, config: MixConfig):
@@ -191,7 +191,7 @@ class Mixer:
 
         Плеер ждёт `fn(seed, exclude, limit)` и зовёт её из фона. Продолжение
         собираем тем же миксом: иначе бесконечная волна незаметно съехала бы
-        в один источник — тот, которым плеер продолжает очередь обычно."""
+        в один источник - тот, которым плеер продолжает очередь обычно."""
         def extend(_seed, exclude, limit):
             follow = MixConfig.from_dict(config.to_dict())
             follow.limit = max(MIN_LIMIT, min(_int(limit, MIN_LIMIT), MAX_LIMIT))
@@ -216,7 +216,7 @@ class Mixer:
             need = self._need(config, source)
             try:
                 tracks = self._pool(source, config, need, notes)
-            except Exception as exc:  # noqa: BLE001 — один источник не должен ронять микс
+            except Exception as exc:  # noqa: BLE001 - один источник не должен ронять микс
                 logger.warning('Микс: %s не ответил: %s', source, exc)
                 notes.append(f'{SOURCE_TITLES[source]}: {exc}')
                 tracks = []
@@ -251,7 +251,7 @@ class Mixer:
             notes.append('Музыка VK: вход не выполнен')
             return []
         if config.query:
-            # Кириллицу в поиск VK шлёт сам VkClient — транслитом, иначе ответ мусорный
+            # Кириллицу в поиск VK шлёт сам VkClient - транслитом, иначе ответ мусорный
             rows = client.search_tracks(config.query, (known_need + new_need) * 2)
             return _labelled(rows, KIND_FALLBACK)
 
@@ -270,17 +270,17 @@ class Mixer:
 
     def _vk_new(self, client, config: MixConfig, need: int,
                 notes: list[str]) -> list[Track]:
-        """«Новое» из VK: сперва подборка самого VK, потом — поиск.
+        """«Новое» из VK: сперва подборка самого VK, потом - поиск.
 
         Порядок важен ровно потому, что это разные вещи. Поиск по своим же
-        исполнителям — не рекомендация, и выдавать его за неё нельзя (AGENTS.md),
+        исполнителям - не рекомендация, и выдавать его за неё нельзя (AGENTS.md),
         поэтому у каждой ветки своя метка, а замена названа вслух в примечаниях.
         """
         if config.vk_recoms:
             try:
                 rows = self._cached('vk_recoms',
                                     lambda: client.recommended_tracks(need))
-            except Exception as exc:  # noqa: BLE001 — микс важнее одного источника
+            except Exception as exc:  # noqa: BLE001 - микс важнее одного источника
                 logger.debug('Микс: рекомендации VK недоступны: %s', exc)
                 rows = []
             if rows:
@@ -291,7 +291,7 @@ class Mixer:
     def _vk_by_artists(self, client, need: int) -> list[Track]:
         """Запасной путь: поиск по тем, кого человек уже слушает.
 
-        Это именно поиск, поэтому треки уезжают с меткой `KIND_FALLBACK` —
+        Это именно поиск, поэтому треки уезжают с меткой `KIND_FALLBACK` -
         по ней видно в подсказке и в журнале, что подборка не от VK.
         """
         artists = self._top_artists()
@@ -303,7 +303,7 @@ class Mixer:
         for artist in artists:
             try:
                 rows = client.search_tracks(artist, per_artist)
-            except Exception as exc:  # noqa: BLE001 — один исполнитель не важнее микса
+            except Exception as exc:  # noqa: BLE001 - один исполнитель не важнее микса
                 logger.debug('Микс: поиск в VK по «%s» не удался: %s', artist, exc)
                 continue
             tracks += _labelled(rows, KIND_FALLBACK)
@@ -317,7 +317,7 @@ class Mixer:
         if rec is None:
             return []
         if config.query:
-            # artist_radio — это поиск с той же чисткой скрытого, что и у радио
+            # artist_radio - это поиск с той же чисткой скрытого, что и у радио
             return rec.artist_radio(config.query, (known_need + new_need) * 2)
 
         tracks: list[Track] = []
@@ -329,7 +329,7 @@ class Mixer:
             for section in rec.sections(max(8, new_need)):
                 fresh += section.tracks
                 if not section.genuine and 'YouTube: лента недоступна, взят поиск' not in notes:
-                    # Подменять ленту поиском молча нельзя — так же честно, как в подборках
+                    # Подменять ленту поиском молча нельзя - так же честно, как в подборках
                     notes.append('YouTube: лента недоступна, взят поиск')
             tracks += self._sample(fresh, new_need * 2)
         if not tracks:
@@ -358,7 +358,7 @@ class Mixer:
         return value
 
     def _sample(self, tracks: list[Track], need: int) -> list[Track]:
-        """Взять кусок списка. Случайный — иначе микс каждый раз начинался бы
+        """Взять кусок списка. Случайный - иначе микс каждый раз начинался бы
         с одних и тех же треков, стоящих в фонотеке первыми."""
         tracks = list(tracks)
         if need <= 0 or len(tracks) <= need:
@@ -377,7 +377,7 @@ class Mixer:
             return []
         try:
             return [a for a in self._store.top_artists(SEED_ARTISTS) if a]
-        except Exception:  # noqa: BLE001 — без истории просто нет затравок
+        except Exception:  # noqa: BLE001 - без истории просто нет затравок
             logger.debug('Микс: история не прочиталась', exc_info=True)
             return []
 
@@ -398,7 +398,7 @@ class Mixer:
 
     def _clean(self, pools: dict, config: MixConfig,
                blocked: tuple[set[str], set[str]]) -> dict:
-        """Убрать скрытое, недавнее и повторы — в том числе одну песню из разных
+        """Убрать скрытое, недавнее и повторы - в том числе одну песню из разных
         источников: «та же песня, но с YouTube» подряд слушается как заедание."""
         hidden_uids, hidden_artists = blocked
         seen_uids: set[str] = set()

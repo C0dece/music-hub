@@ -1,6 +1,6 @@
 """Старые настройки должны открываться без ошибок и без потери значений.
 
-У пользователя уже лежит settings.json, написанный прежними версиями — там нет
+У пользователя уже лежит settings.json, написанный прежними версиями - там нет
 ни громкости, ни значка в трее, ни моста. Файл трогаем только временный.
 """
 import json
@@ -10,7 +10,7 @@ from pathlib import Path
 
 from app import config
 
-# Настройки самой первой версии — только загрузчик, ничего про музыку
+# Настройки самой первой версии - только загрузчик, ничего про музыку
 OLD_SETTINGS = {
     'mode': 'audio',
     'audio_format': 'mp3',
@@ -57,7 +57,7 @@ class SettingsMigrationTests(unittest.TestCase):
         self.assertEqual(settings['proxy_port'], 8080)
 
     def test_unknown_keys_are_kept(self):
-        """Чужой ключ — не повод его выбрасывать: вдруг это старая версия."""
+        """Чужой ключ - не повод его выбрасывать: вдруг это старая версия."""
         self.write({**OLD_SETTINGS, 'какой_то_старый_ключ': 1})
         self.assertEqual(config.load_settings()['какой_то_старый_ключ'], 1)
 
@@ -86,7 +86,7 @@ class SettingsMigrationTests(unittest.TestCase):
         self.assertNotEqual(config.DEFAULT_SETTINGS['volume'], 5)
 
     def test_bridge_token_is_not_default_secret(self):
-        """Общего для всех ключа быть не может — он выдаётся при первом запуске."""
+        """Общего для всех ключа быть не может - он выдаётся при первом запуске."""
         self.assertEqual(config.DEFAULT_SETTINGS['bridge_token'], '')
 
 

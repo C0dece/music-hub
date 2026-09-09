@@ -46,7 +46,7 @@ class SelectionModeTests(unittest.TestCase):
                          {'a', 'c'})
 
     def test_leaving_selection_mode_clears_marks(self):
-        """Вышли из режима — отметки сняты и выделение снова обычное."""
+        """Вышли из режима - отметки сняты и выделение снова обычное."""
         self.list.set_selection_mode(True)
         self.list.item(0).setSelected(True)
         self.list.set_selection_mode(False)
@@ -76,7 +76,7 @@ class SelectionModeTests(unittest.TestCase):
         self.assertIn('1', bar._count.text())
 
     def test_reloading_the_list_resets_the_counter(self):
-        """Список перечитали — отметки ушли со строками, и счётчик это показывает."""
+        """Список перечитали - отметки ушли со строками, и счётчик это показывает."""
         bar = SelectionBar(self.list)
         bar._on_toggle()
         self.list.item(0).setSelected(True)

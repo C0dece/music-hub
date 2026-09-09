@@ -3,14 +3,14 @@
 Это тот же API, которым пользуется сам сайт music.youtube.com в браузере. Он
 недокументирован, поэтому здесь соблюдаются простые правила:
 
-* обращения к нему собраны в одном файле — по интерфейсу они не расползаются;
+* обращения к нему собраны в одном файле - по интерфейсу они не расползаются;
 * у каждого запроса есть таймаут и ограниченное число попыток;
 * ответ не разбирается по жёсткому пути вида contents[0].tabs[3]: вложенность
   меняется, а нужные куски ищутся обходом дерева по именам блоков;
 * любая ошибка возвращает пустой список, а не исключение наружу;
 * в журнал не попадают ни куки, ни заголовок авторизации.
 
-Авторизация берётся из браузера пользователя — теми же куками, что уже
+Авторизация берётся из браузера пользователя - теми же куками, что уже
 используются для скачивания. Пароли нигде не хранятся и не запрашиваются: если
 кук нет, API отвечает как гостю, и это допустимый режим работы.
 """
@@ -32,14 +32,14 @@ logger = logging.getLogger(__name__)
 _MUSIC_ORIGIN = 'https://music.youtube.com'
 _API = _MUSIC_ORIGIN + '/youtubei/v1/'
 # Ключ веб-клиента YouTube Music. Он публичный, одинаковый для всех и лежит в
-# исходниках самой страницы — это не секрет пользователя.
+# исходниках самой страницы - это не секрет пользователя.
 _KEY = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30'
 _CLIENT = {'clientName': 'WEB_REMIX', 'clientVersion': '1.20240403.01.00'}
 _DOMAINS = ('youtube.com', 'google.com')
 
 _TIMEOUT = 12
 _RETRIES = 2
-# Ответ главной страницы — это мегабайты JSON. Больше просто не разбираем.
+# Ответ главной страницы - это мегабайты JSON. Больше просто не разбираем.
 _MAX_BYTES = 12 * 1024 * 1024
 # Сервис может лечь целиком (нет сети, YouTube поменял API). Тогда не долбимся
 # в него на каждый чих, а ждём.
@@ -47,11 +47,11 @@ _COOLDOWN = 300
 
 # Блоки ответа, в которых лежат треки. Их набор менялся не раз, поэтому смотрим
 # на все известные разом: какой попадётся, из такого и соберём.
-# Фильтр «Видео» в поиске YouTube Music — тот же параметр, что подставляет сайт
+# Фильтр «Видео» в поиске YouTube Music - тот же параметр, что подставляет сайт
 _VIDEO_FILTER = 'EgWKAQIQAWoKEAkQChAFEAMQBA%3D%3D'
 # Клип и песня редко совпадают по длительности секунда в секунду: у клипа бывает
 # вступление или затянутый конец. Пятнадцати секунд хватает, чтобы принять свой
-# ролик и отсечь чужой — сборник или расширенную версию
+# ролик и отсечь чужой - сборник или расширенную версию
 _CLIP_SLACK = 15
 
 _ITEM_KEYS = (
@@ -80,7 +80,7 @@ def cookie_value(session: requests.Session, name: str) -> str:
 
 
 class InnerTubeError(Exception):
-    """Внутренний API не ответил. Наружу не выходит — ловится здесь же."""
+    """Внутренний API не ответил. Наружу не выходит - ловится здесь же."""
 
 
 class InnerTube:
@@ -106,7 +106,7 @@ class InnerTube:
         return time.monotonic() >= self._blocked_until
 
     def reset(self) -> None:
-        """Забыть сессию — например, после смены браузера в настройках."""
+        """Забыть сессию - например, после смены браузера в настройках."""
         with self._lock:
             self._session = None
             self._session_browser = ''
@@ -136,10 +136,10 @@ class InnerTube:
                     count = load_domain_cookies_from_browser(browser, session, _DOMAINS)
                     self._authorized = bool(cookie_value(session, 'SAPISID')
                                             or cookie_value(session, '__Secure-3PAPISID'))
-                    # Имена и значения кук в журнал не пишем — только их количество
+                    # Имена и значения кук в журнал не пишем - только их количество
                     logger.info('InnerTube: куки из браузера %s: %d шт., вход %s',
                                 browser, count, 'есть' if self._authorized else 'нет')
-                except Exception as exc:  # noqa: BLE001 — браузер мог держать базу
+                except Exception as exc:  # noqa: BLE001 - браузер мог держать базу
                     logger.info('InnerTube: куки из браузера не прочитались (%s)',
                                 type(exc).__name__)
             self._session = session
@@ -147,7 +147,7 @@ class InnerTube:
             return session
 
     def _auth_header(self, session: requests.Session) -> str:
-        """Подпись SAPISIDHASH — то же, что считает сам сайт в браузере.
+        """Подпись SAPISIDHASH - то же, что считает сам сайт в браузере.
 
         Сам секрет ни в журнал, ни куда-либо ещё не уходит."""
         sapisid = (cookie_value(session, 'SAPISID')
@@ -200,7 +200,7 @@ class InnerTube:
 
     # ---------- готовые запросы ----------
     def radio(self, video_id: str, limit: int = 25) -> list[dict]:
-        """Очередь «радио» по ролику — то же, что даёт кнопка Radio на сайте."""
+        """Очередь «радио» по ролику - то же, что даёт кнопка Radio на сайте."""
         video_id = (video_id or '').strip()
         if not video_id:
             return []
@@ -222,7 +222,7 @@ class InnerTube:
     def home_full(self, limit_per_section: int = 20):
         """Главная целиком: полки с треками и полки с подборками.
 
-        Один запрос на оба списка: ответ главной — это мегабайты JSON, тянуть
+        Один запрос на оба списка: ответ главной - это мегабайты JSON, тянуть
         их дважды ради разных частей одного и того же ответа незачем."""
         try:
             data = self._post('browse', {'browseId': 'FEmusic_home'})
@@ -250,7 +250,7 @@ class InnerTube:
     def playlists(self, limit: int = 40) -> list[dict]:
         """Плейлисты пользователя из его библиотеки YouTube Music.
 
-        Без кук список личных плейлистов не существует — возвращаем пусто,
+        Без кук список личных плейлистов не существует - возвращаем пусто,
         а не выдумываем чужие подборки."""
         if not self._authorized:
             return []
@@ -274,7 +274,7 @@ class InnerTube:
         return result
 
     def playlist_items(self, playlist_id: str, limit: int = 200) -> list[dict]:
-        """Треки плейлиста. Номер — обычный `PL…`/`VL…`, приставку добавим сами."""
+        """Треки плейлиста. Номер - обычный `PL…`/`VL…`, приставку добавим сами."""
         playlist_id = (playlist_id or '').strip()
         if not playlist_id:
             return []
@@ -287,17 +287,17 @@ class InnerTube:
         return parse_items(data, limit)
 
     def music_video(self, title: str, artist: str, duration: int = 0) -> str:
-        """Номер настоящего клипа для песни. Не нашли — пустая строка.
+        """Номер настоящего клипа для песни. Не нашли - пустая строка.
 
         YouTube Music отдаёт песни как «art tracks»: ролик, в котором вместо
         картинки одна обложка альбома. Смотреть такое в видеорежиме незачем, а
-        ссылки на клип в ответе плеера нет — переключатель «Песня / Видео» на
+        ссылки на клип в ответе плеера нет - переключатель «Песня / Видео» на
         сайте берёт её из мобильного клиента, который сюда не пускает.
 
         Поэтому ищем клип тем же поиском, но с фильтром «Видео», и берём первое
         совпадение по трём признакам сразу: тот же исполнитель, название песни
         внутри названия ролика и длительность в пределах пятнадцати секунд.
-        Порознь любой из них ошибается — поиск охотно подсовывает часовые
+        Порознь любой из них ошибается - поиск охотно подсовывает часовые
         сборники, каверы и чужие перезаливки того же трека."""
         title, artist = (title or '').strip(), (artist or '').strip()
         if not title:
@@ -327,7 +327,7 @@ class InnerTube:
             return []
         payload = {'query': query}
         if music_only:
-            # Фильтр «Песни» — параметр, который сайт подставляет сам
+            # Фильтр «Песни» - параметр, который сайт подставляет сам
             payload['params'] = 'EgWKAQIIAWoKEAkQBRAKEAMQBA%3D%3D'
         try:
             data = self._post('search', payload)
@@ -338,7 +338,7 @@ class InnerTube:
 
 
 # ---------- разбор ответа ----------
-# Обход дерева вместо точного пути — сознательно: у YouTube между версиями
+# Обход дерева вместо точного пути - сознательно: у YouTube между версиями
 # меняется вложенность, а имена блоков живут годами.
 def _walk(node, key: str, found: list) -> None:
     """Собрать в `found` все блоки с указанным именем."""
@@ -380,7 +380,7 @@ def _text(node) -> str:
 
 
 def _duration(value: str) -> int:
-    """«3:21» или «1:02:15» в секунды. Всё остальное — ноль."""
+    """«3:21» или «1:02:15» в секунды. Всё остальное - ноль."""
     parts = (value or '').strip().split(':')
     if len(parts) not in (2, 3) or not all(p.isdigit() for p in parts):
         return 0
@@ -391,7 +391,7 @@ def _duration(value: str) -> int:
 
 
 def _thumbnail(node) -> str:
-    """Самая крупная обложка из блока — они идут по возрастанию размера."""
+    """Самая крупная обложка из блока - они идут по возрастанию размера."""
     best = ''
     for item in _flatten(node):
         thumbs = item.get('thumbnails')
@@ -407,7 +407,7 @@ def _plain(value: str) -> str:
     """Строка для сравнения названий: без скобок, знаков и разного регистра.
 
     В названии ролика к песне обычно приписано «(Official Video)», а в имени
-    исполнителя — «- Topic». Сравнивать такое как есть бессмысленно."""
+    исполнителя - «- Topic». Сравнивать такое как есть бессмысленно."""
     value = re.sub(r'\(.*?\)|\[.*?\]', ' ', (value or '').lower())
     value = re.sub(r'[^0-9a-zа-яё]+', ' ', value)
     return ' '.join(value.split())
@@ -423,7 +423,7 @@ def _video_id(node) -> str:
 
 
 def _columns(node) -> list[str]:
-    """Тексты колонок — так устроены строки списков в YouTube Music."""
+    """Тексты колонок - так устроены строки списков в YouTube Music."""
     found: list = []
     _walk(node, 'musicResponsiveListItemFlexColumnRenderer', found)
     texts = [_text(col.get('text')) for col in found]
@@ -431,11 +431,11 @@ def _columns(node) -> list[str]:
 
 
 def parse_item(node) -> dict | None:
-    """Из блока YouTube — простая запись о треке. Не разобралось — None."""
+    """Из блока YouTube - простая запись о треке. Не разобралось - None."""
     if not isinstance(node, dict):
         return None
     video_id = _video_id(node)
-    # Номер ролика — ровно 11 знаков. Проверка заодно отсекает всё, что
+    # Номер ролика - ровно 11 знаков. Проверка заодно отсекает всё, что
     # обходом дерева зацепилось случайно.
     if len(video_id) != 11:
         return None
@@ -452,7 +452,7 @@ def parse_item(node) -> dict | None:
     if not title:
         return None
 
-    # «Исполнитель • Альбом • 3:21» — имя слева, длительность где-то справа
+    # «Исполнитель • Альбом • 3:21» - имя слева, длительность где-то справа
     pieces = [piece.strip() for piece in subtitle.split('•')] if subtitle else []
     artist = ''
     duration = _duration(length)
@@ -486,7 +486,7 @@ def parse_items(data, limit: int) -> list[dict]:
 
 
 def _playlist_id(node, allow_mix: bool = False) -> str:
-    """Номер плейлиста: в переходе он идёт как `VLPL…`, в командах — как `PL…`."""
+    """Номер плейлиста: в переходе он идёт как `VLPL…`, в командах - как `PL…`."""
     for item in _flatten(node):
         value = item.get('browseId')
         if isinstance(value, str) and value.startswith('VL') and len(value) > 4:
@@ -495,8 +495,8 @@ def _playlist_id(node, allow_mix: bool = False) -> str:
         value = item.get('playlistId')
         if not isinstance(value, str) or len(value) <= 4:
             continue
-        # `RD…` — это радио. В списке личных плейлистов ему не место, а вот
-        # миксы главной — ровно такие подборки, и без них лента почти пуста
+        # `RD…` - это радио. В списке личных плейлистов ему не место, а вот
+        # миксы главной - ровно такие подборки, и без них лента почти пуста
         if value.startswith('RD') and not allow_mix:
             continue
         return value
@@ -504,11 +504,11 @@ def _playlist_id(node, allow_mix: bool = False) -> str:
 
 
 def parse_playlist(node, allow_mix: bool = False) -> dict | None:
-    """Плитка плейлиста — в простую запись. Не разобралось — None."""
+    """Плитка плейлиста - в простую запись. Не разобралось - None."""
     if not isinstance(node, dict):
         return None
     playlist_id = _playlist_id(node, allow_mix)
-    # Плитка трека тоже носит с собой номер плейлиста — отличаем по ролику
+    # Плитка трека тоже носит с собой номер плейлиста - отличаем по ролику
     if not playlist_id or _video_id(node):
         return None
     title = _text(node.get('title')) or ''
@@ -547,7 +547,7 @@ def parse_playlists(data, limit: int, allow_mix: bool = False) -> list[dict]:
 
 
 def _shelves(data) -> list:
-    """Полки ответа — и карусели, и обычные списки."""
+    """Полки ответа - и карусели, и обычные списки."""
     shelves: list = []
     _walk(data, 'musicCarouselShelfRenderer', shelves)
     _walk(data, 'musicShelfRenderer', shelves)
@@ -585,7 +585,7 @@ def parse_mix_sections(data, limit: int) -> list[tuple[str, list[dict]]]:
 
     Главная YouTube Music в основном из них и состоит: миксы, подборки по
     настроению и жанрам. Если брать только полки с треками, от всей ленты
-    остаётся одна-две штуки — а выбирать человеку не из чего."""
+    остаётся одна-две штуки - а выбирать человеку не из чего."""
     sections: list[tuple[str, list[dict]]] = []
     seen_titles: set[str] = set()
     seen_ids: set[str] = set()

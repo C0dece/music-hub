@@ -1,6 +1,6 @@
 """Журнал должен пережить смерть программы.
 
-Внезапно закрывшееся окно расследуется по одному-единственному следу — тому, что
+Внезапно закрывшееся окно расследуется по одному-единственному следу - тому, что
 успело попасть в файл. Поэтому проверяем не форматирование, а три вещи, которых
 раньше не было: отметка о запуске, отметка о выходе и сообщения самого Qt.
 """
@@ -45,7 +45,7 @@ class RunBoundaryTests(unittest.TestCase):
         self.assertIn('запуск', said[0])
 
     def test_qt_fatal_message_reaches_the_log(self):
-        """Фатальная ошибка Qt убивает процесс мимо Python — её надо успеть записать."""
+        """Фатальная ошибка Qt убивает процесс мимо Python - её надо успеть записать."""
         from PySide6.QtCore import QtMsgType, qInstallMessageHandler
 
         log_setup._capture_qt_messages()
@@ -63,7 +63,7 @@ class RunBoundaryTests(unittest.TestCase):
         self.assertEqual(level, logging.CRITICAL)
 
     def test_ordinary_qt_warning_is_not_raised_to_critical(self):
-        """Шум Qt в журнале нужен, но пугать им нельзя — иначе он обесценит настоящее."""
+        """Шум Qt в журнале нужен, но пугать им нельзя - иначе он обесценит настоящее."""
         from PySide6.QtCore import QtMsgType, qInstallMessageHandler
 
         log_setup._capture_qt_messages()

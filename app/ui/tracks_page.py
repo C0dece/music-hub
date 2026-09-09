@@ -1,11 +1,11 @@
-"""«Треки» — фонотека из всех источников сразу.
+"""«Треки» - фонотека из всех источников сразу.
 
 Одна из главных мыслей раздела «Моя музыка»: человеку неважно, откуда взялась
 песня. Здесь в одном списке лежат аудиозаписи VK, ролики YouTube и файлы с
-диска — с одинаковыми обложками, одинаковым меню и одинаковым двойным щелчком.
+диска - с одинаковыми обложками, одинаковым меню и одинаковым двойным щелчком.
 Отличие видно только по метке источника и по галочке «офлайн».
 
-Список берётся из базы (`store.saved_tracks`), а не из папок: папки — это способ
+Список берётся из базы (`store.saved_tracks`), а не из папок: папки - это способ
 добавить свои файлы, а не сама фонотека. Иначе трек VK и трек с диска жили бы по
 разным правилам, и раздел развалился бы на два."""
 from __future__ import annotations
@@ -47,7 +47,7 @@ class TracksPage(QWidget):
 
     status_message = Signal(str)
     local_dirs_changed = Signal(object)   # новый список папок со своей музыкой
-    play_requested = Signal(object, int)  # проксируется дальше — как у других разделов
+    play_requested = Signal(object, int)  # проксируется дальше - как у других разделов
 
     def __init__(self, store, settings_provider, offline=None, parent=None,
                  preset: str = PRESET_ALL):
@@ -94,7 +94,7 @@ class TracksPage(QWidget):
         row.add(self._only_offline)
 
         # В «С компьютера» и «Кэше» источник задан самим разделом: переключатель
-        # там только вводил бы в заблуждение — выбрать нечего
+        # там только вводил бы в заблуждение - выбрать нечего
         if self._preset != PRESET_ALL:
             self._source.hide()
             self._only_offline.hide()
@@ -128,7 +128,7 @@ class TracksPage(QWidget):
         box.addWidget(self._selection_bar)
         box.addWidget(self._list, 1)
 
-        # Два разных «пусто»: фонотеки ещё нет — и фильтр ничего не нашёл.
+        # Два разных «пусто»: фонотеки ещё нет - и фильтр ничего не нашёл.
         # Совет в каждом случае свой, поэтому текст меняем на месте
         title, text = self._empty_texts()
         self._empty = EmptyState('audio', title, text)
@@ -139,7 +139,7 @@ class TracksPage(QWidget):
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
-        # Сводка «столько-то треков» — справка, а не функционал: в низком окне
+        # Сводка «столько-то треков» - справка, а не функционал: в низком окне
         # она отнимает строку у самого списка. Полосу выбора не трогаем, через
         # неё снимают отметки
         self._summary.setVisible(self.height() >= 220)
@@ -173,7 +173,7 @@ class TracksPage(QWidget):
     # ---------- содержимое ----------
     def reload(self) -> None:
         if self._preset == PRESET_CACHE:
-            # Кэш — это отдельная выборка базы, а не подмножество фонотеки:
+            # Кэш - это отдельная выборка базы, а не подмножество фонотеки:
             # офлайн-копию можно сделать и у трека, который в неё не сохранён
             self._all = self._store.cached_tracks()
         elif self._preset == PRESET_LOCAL:
@@ -200,7 +200,7 @@ class TracksPage(QWidget):
         self._update_badges()
 
     def _update_empty(self, has_rows: bool) -> None:
-        """Пустой список подменяем подсказкой — их видно сразу, без вчитывания."""
+        """Пустой список подменяем подсказкой - их видно сразу, без вчитывания."""
         self._list.setVisible(has_rows)
         self._empty.setVisible(not has_rows)
         if self._all:
@@ -222,7 +222,7 @@ class TracksPage(QWidget):
             elif track.cached:
                 badges[track.uid] = '✓ офлайн'
             elif track.source == SOURCE_LOCAL or self._preset == PRESET_CACHE:
-                # Файл переименовали или унесли — честно говорим об этом, а не
+                # Файл переименовали или унесли - честно говорим об этом, а не
                 # выкидываем трек из списка: он есть в плейлистах и ещё вернётся.
                 # В «Кэше» это тем более важно: запись есть, а играть нечего
                 badges[track.uid] = 'файла нет'
@@ -231,7 +231,7 @@ class TracksPage(QWidget):
     def _on_offline_changed(self, uid: str) -> None:
         track = self._store.get_track(uid)
         if track is not None:
-            # Путь к файлу мог появиться или пропасть — обновляем и сам трек
+            # Путь к файлу мог появиться или пропасть - обновляем и сам трек
             self._all = [track if item.uid == uid else item for item in self._all]
         self._apply_filter()
         self._update_summary()
@@ -245,7 +245,7 @@ class TracksPage(QWidget):
         cached = sum(1 for track in self._all if track.cached)
         if self._preset == PRESET_CACHE:
             # Здесь важно другое число: сколько записей числятся копиями, но
-            # файла на диске уже нет — их видно строкой, а не догадкой
+            # файла на диске уже нет - их видно строкой, а не догадкой
             lost = total - cached
             base = f'Офлайн-копий: {total}'
             if lost:
@@ -255,7 +255,7 @@ class TracksPage(QWidget):
                 self._append_folder_size(base)
             return
         if not total:
-            # Про пустую фонотеку уже написано посреди страницы — второй раз
+            # Про пустую фонотеку уже написано посреди страницы - второй раз
             # повторять то же самое строкой сверху незачем
             self._summary.setText('')
             return
@@ -320,13 +320,13 @@ class TracksPage(QWidget):
         self._start(lambda: library.scan_audio_tracks([directory]))
 
     def refresh_local_dirs(self) -> None:
-        """Перечитать папки со своей музыкой — вдруг в них добавилось новое."""
+        """Перечитать папки со своей музыкой - вдруг в них добавилось новое."""
         dirs = list(self._settings().get('local_dirs') or [])
         if dirs:
             self._start(lambda: library.scan_audio_tracks(dirs))
 
     def _start(self, work) -> None:
-        """Чтение тегов — это диск и сотни файлов, поэтому всегда в фоне."""
+        """Чтение тегов - это диск и сотни файлов, поэтому всегда в фоне."""
         if self._busy:
             self.status_message.emit('Добавление уже идёт, подождите')
             return

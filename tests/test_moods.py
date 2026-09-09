@@ -1,9 +1,9 @@
 """Готовые настроения: каждое обязано разворачиваться в рабочий микс.
 
-Пресет не исполняется отдельной веткой — он только предзаполняет `MixConfig`,
+Пресет не исполняется отдельной веткой - он только предзаполняет `MixConfig`,
 поэтому проверять здесь надо не музыку, а пригодность настроек: тот ли режим,
 не пустые ли доли, переживает ли конфигурация запись в settings.json и, главное,
-нет ли кириллицы в запросе — её VK в поиске портит (AGENTS.md).
+нет ли кириллицы в запросе - её VK в поиске портит (AGENTS.md).
 """
 import unittest
 
@@ -56,7 +56,7 @@ class MoodTests(unittest.TestCase):
         self.assertNotEqual(first.weights, second.weights)
 
     def test_keys_and_titles_are_unique(self):
-        """Ключ — то, чем настроение опознают в настройках, он обязан быть один."""
+        """Ключ - то, чем настроение опознают в настройках, он обязан быть один."""
         keys = [mood.key for mood in moods.MOODS]
         self.assertEqual(len(set(keys)), len(keys))
         titles = [mood.title for mood in moods.MOODS]

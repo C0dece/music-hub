@@ -75,7 +75,7 @@ class StoreTests(unittest.TestCase):
             again.close()
 
     def test_mapping_without_vk_coordinates(self):
-        """Залили файл, а координат VK не отдал — факт переноса всё равно помним."""
+        """Залили файл, а координат VK не отдал - факт переноса всё равно помним."""
         source = yt()
         self.store.save_track(source)
         self.store.set_mapping(source.uid, None, 'upload')
@@ -130,7 +130,7 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(self.store.get_json('нет такого', []), [])
 
     def test_library_keeps_all_sources_together(self):
-        """Фонотека — один список для VK, YouTube и файлов с диска."""
+        """Фонотека - один список для VK, YouTube и файлов с диска."""
         path = os.path.join(tempfile.gettempdir(), 'numb.mp3')
         local = Track(source='local', source_id=os.path.normcase(path),
                       title='Numb', artist='Linkin Park', local_path=path)
@@ -164,7 +164,7 @@ class StoreTests(unittest.TestCase):
         self.store.set_local_path(yt().uid, __file__, cached=True)
         self.assertEqual(self.store.cached_uids([yt().uid]), {yt().uid})
         self.assertEqual([t.uid for t in self.store.cached_tracks()], [yt().uid])
-        # cached — это «файл действительно лежит на диске», а не просто путь
+        # cached - это «файл действительно лежит на диске», а не просто путь
         self.assertTrue(self.store.get_track(yt().uid).cached)
 
         self.store.clear_local_path(yt().uid)
@@ -183,11 +183,11 @@ class StoreTests(unittest.TestCase):
 class MigrationTests(unittest.TestCase):
     """База прошлой версии должна открыться и сохранить данные.
 
-    Пользователь обновляет программу поверх — терять его историю и плейлисты
+    Пользователь обновляет программу поверх - терять его историю и плейлисты
     из-за новых колонок нельзя."""
 
     # Схема первой версии: у истории нет источника и длительности прослушивания,
-    # у плейлистов — происхождения
+    # у плейлистов - происхождения
     V1 = """
     CREATE TABLE tracks (
         uid TEXT PRIMARY KEY, source TEXT, source_id TEXT, title TEXT, artist TEXT,

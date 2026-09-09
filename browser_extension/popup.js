@@ -24,7 +24,7 @@ async function init() {
     const data = await status();
     const track = data.track;
     now.textContent = track
-      ? `${data.playing ? '▶' : '❚❚'} ${track.artist ? track.artist + ' — ' : ''}${track.title || ''}`
+      ? `${data.playing ? '▶' : '❚❚'} ${track.artist ? track.artist + ' - ' : ''}${track.title || ''}`
       : 'Приложение на связи, ничего не играет';
   } catch (error) {
     now.textContent = 'Приложение не отвечает';

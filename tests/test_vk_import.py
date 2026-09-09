@@ -1,6 +1,6 @@
-"""Кнопка «+ VK»: поиск готовой записи, добавление, а если не нашлось — заливка.
+"""Кнопка «+ VK»: поиск готовой записи, добавление, а если не нашлось - заливка.
 
-Настоящий VK здесь не трогается: клиент, очередь заливки и загрузчик — заглушки.
+Настоящий VK здесь не трогается: клиент, очередь заливки и загрузчик - заглушки.
 Проверяем ровно то, что обещано пользователю: сначала ищем, добавляем найденное,
 качаем только когда искать нечего, и один и тот же трек не переносим дважды.
 """
@@ -125,7 +125,7 @@ class ImportTests(unittest.TestCase):
                 pass
 
     def pump(self, times=40):
-        """Фоновая задача отдаёт результат сигналом — его нужно прокрутить."""
+        """Фоновая задача отдаёт результат сигналом - его нужно прокрутить."""
         for _ in range(times):
             QThreadPool.globalInstance().waitForDone(100)
             self.app.processEvents()
@@ -153,13 +153,13 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(self.manager.calls, [], 'качать было незачем')
         mapping = self.store.get_mapping(track.uid)
         self.assertEqual(mapping['method'], 'match')
-        # VK кладёт к себе копию — запоминаем именно её координаты
+        # VK кладёт к себе копию - запоминаем именно её координаты
         self.assertEqual(self.store.mapping_target(track.uid).vk_audio_id, 99)
         self.assertIn(vk_import.STATE_ADDING, self.states)
         self.assertEqual(self.states[-1], vk_import.STATE_DONE)
 
     def test_state_of_after_restart(self):
-        """Связка лежит в базе — кнопка обязана сразу показывать «✓ В VK»."""
+        """Связка лежит в базе - кнопка обязана сразу показывать «✓ В VK»."""
         track = yt()
         self.store.save_track(track)
         self.store.set_mapping(track.uid, None, 'upload')

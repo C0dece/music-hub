@@ -2,7 +2,7 @@
 
 Здесь сходятся три источника: лента YouTube Music (`youtube.Discovery`), история
 прослушиваний из базы и обычный поиск как запасной путь. Наружу это один объект
-с несколькими понятными методами — разделы интерфейса не должны знать, откуда
+с несколькими понятными методами - разделы интерфейса не должны знать, откуда
 именно пришёл трек.
 
 Все методы ходят в сеть, поэтому вызывать их можно только из фонового потока
@@ -36,7 +36,7 @@ class Recommender:
 
     # ---------- радио ----------
     def radio(self, seed: Track, limit: int = 25) -> list[Track]:
-        """Подборка по треку. Сам трек в неё не попадает — он и так первый."""
+        """Подборка по треку. Сам трек в неё не попадает - он и так первый."""
         if seed is None:
             return []
         tracks = self._discovery.radio(seed, limit + 10)
@@ -44,7 +44,7 @@ class Recommender:
         return self._prepare(tracks, {seed.uid}, limit, kind)
 
     def artist_radio(self, artist: str, limit: int = 25) -> list[Track]:
-        """Радио по исполнителю — поиском, потому что затравки-ролика тут нет."""
+        """Радио по исполнителю - поиском, потому что затравки-ролика тут нет."""
         artist = (artist or '').strip()
         if not artist:
             return []
@@ -89,7 +89,7 @@ class Recommender:
             return []
         try:
             return list(self._store.top_artists(limit))
-        except Exception:  # noqa: BLE001 — без истории просто нет подсказок
+        except Exception:  # noqa: BLE001 - без истории просто нет подсказок
             logger.debug('Рекомендации: история не прочиталась', exc_info=True)
             return []
 

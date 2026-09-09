@@ -1,6 +1,6 @@
 """Фоновый перезаход в VK: тихо, редко и никогда не открывая окно входа.
 
-Ни сети, ни QtWebEngine здесь нет — движок подменяется фабрикой, а проверка сессии
+Ни сети, ни QtWebEngine здесь нет - движок подменяется фабрикой, а проверка сессии
 и запись кук перехватываются. Проверяем ровно то, ради чего keeper написан: он не
 штурмует VK, не дерётся с окном входа за профиль и молчит вместо того, чтобы
 показывать пароль-форму.
@@ -28,7 +28,7 @@ class FakeEngine:
 
 
 def session_cookie(name='remixsid'):
-    """Ключи словаря кук — (домен, имя); значение keeper смотрит только при записи."""
+    """Ключи словаря кук - (домен, имя); значение keeper смотрит только при записи."""
     return {('.vk.ru', name): object()}
 
 
@@ -63,7 +63,7 @@ class KeeperTests(unittest.TestCase):
     def keeper(self, user_id=1):
         """Владелец по умолчанию есть: без входа в VK keeper вообще не запускают.
 
-        Сессию проверяют делом — запросом за треками, — а для запроса нужен чей-то
+        Сессию проверяют делом - запросом за треками, - а для запроса нужен чей-то
         id. Случай «владелец неизвестен» проверяем отдельным тестом."""
         def factory(on_cookies, on_error):
             engine = FakeEngine(on_cookies, on_error)
@@ -86,7 +86,7 @@ class KeeperTests(unittest.TestCase):
 
         self.assertTrue(k.try_restore())
         self.engines[0].on_cookies(session_cookie())
-        # Куки записаны, но сессия ещё не подтверждена — сигнала нет
+        # Куки записаны, но сессия ещё не подтверждена - сигнала нет
         self.assertEqual(len(self.saved), 1)
         self.assertEqual(out['restored'], 0)
 
@@ -108,7 +108,7 @@ class KeeperTests(unittest.TestCase):
 
     # ---------- профилактика ----------
     def test_preventive_visit_does_not_shout_about_success(self):
-        """Профилактика прошла — снаружи тишина.
+        """Профилактика прошла - снаружи тишина.
 
         Сигнал `restored` означает «сессия вернулась», и окно по нему перечитывает
         списки. Но здесь сессия никуда не девалась: заход был именно потому, что она
@@ -127,7 +127,7 @@ class KeeperTests(unittest.TestCase):
         self.assertFalse(k.running)
 
     def test_failed_preventive_visit_is_silent_too(self):
-        """Не вышло — тоже молчим: чинить нечего, сессия жива.
+        """Не вышло - тоже молчим: чинить нечего, сессия жива.
 
         `failed` окно понимает как «вход потерян» и начинает починку. Запустить её
         из-за неудачного профилактического захода значило бы сломать работающее."""
@@ -152,7 +152,7 @@ class KeeperTests(unittest.TestCase):
             self.assertTrue(k.refresh())
             self.engines[-1].on_error('VK не открылся')
             k._last_try = 0.0                # пауза между попытками тут не проверяется
-        # Лимит не выбран — починка по-прежнему доступна
+        # Лимит не выбран - починка по-прежнему доступна
         self.assertTrue(k.try_restore())
 
     def test_block_during_preventive_visit_is_reported(self):
@@ -187,7 +187,7 @@ class KeeperTests(unittest.TestCase):
     def test_cookie_on_the_wrong_domain_is_not_a_session(self):
         """VK ID кладёт remixsid на `.vk.com`, а музыку мы берём с m.vk.ru.
 
-        Такая кука до наших запросов не доезжает вовсе — requests привязан к
+        Такая кука до наших запросов не доезжает вовсе - requests привязан к
         домену строго. Раньше keeper смотрел только на имя, объявлял успех, и
         человек получал «вход есть, музыки нет» с бесконечным повторным входом."""
         k = self.keeper()
@@ -211,9 +211,9 @@ class KeeperTests(unittest.TestCase):
         self.assertEqual(out['restored'], 0)
 
     def test_unknown_owner_is_a_failure_not_a_silent_success(self):
-        """Проверить сессию нечем — значит, честная неудача, а не мнимая победа.
+        """Проверить сессию нечем - значит, честная неудача, а не мнимая победа.
 
-        Куки могли лечь мёртвыми, и объявить успех, не спросив VK, — соврать: человек
+        Куки могли лечь мёртвыми, и объявить успех, не спросив VK, - соврать: человек
         нажмёт и получит тот самый сбой, ради устранения которого keeper и написан."""
         k = self.keeper(user_id=None)
         out = self.outcome(k)
@@ -245,7 +245,7 @@ class KeeperTests(unittest.TestCase):
         self.assertFalse(k.running)
 
     def test_broken_engine_does_not_break_the_program(self):
-        """Движка может не быть вовсе — это неудача перезахода, а не падение."""
+        """Движка может не быть вовсе - это неудача перезахода, а не падение."""
         def angry(on_cookies, on_error):
             raise RuntimeError('QtWebEngine недоступен')
 
@@ -267,7 +267,7 @@ class KeeperTests(unittest.TestCase):
         self.assertFalse(k.running)
 
     def test_late_cookies_after_timeout_are_ignored(self):
-        """Движок ответил, когда мы уже сдались, — второго исхода быть не должно."""
+        """Движок ответил, когда мы уже сдались, - второго исхода быть не должно."""
         k = self.keeper()
         out = self.outcome(k)
         k.try_restore()
@@ -307,14 +307,14 @@ class KeeperTests(unittest.TestCase):
         """Иначе «без участия пользователя» кончается на третьей неудаче.
 
         Три провала подряд обычно означают, что VK сейчас недоступен, а не что нужен
-        пароль. Замолчать до ручного входа — как раз то, чего просили избежать."""
+        пароль. Замолчать до ручного входа - как раз то, чего просили избежать."""
         k = self.keeper()
         for _ in range(keeper_mod.MAX_ATTEMPTS):
             self.waited(k, keeper_mod.MIN_INTERVAL)
             k.try_restore()
             k._on_timeout()
 
-        # Сразу после серии keeper молчит — VK не штурмуем
+        # Сразу после серии keeper молчит - VK не штурмуем
         self.waited(k, keeper_mod.MIN_INTERVAL)
         self.assertFalse(k.try_restore())
 
@@ -352,7 +352,7 @@ class KeeperTests(unittest.TestCase):
         """Единственный случай, когда повторять бессмысленно: VK не пускает аккаунт.
 
         Раньше блокировка приходила сюда обычной ошибкой, keeper объявлял неудачу, и
-        снаружи заводился таймер следующей попытки — по кругу до перезапуска программы."""
+        снаружи заводился таймер следующей попытки - по кругу до перезапуска программы."""
         k = self.keeper()
         out = self.outcome(k)
         blocked = []
@@ -367,7 +367,7 @@ class KeeperTests(unittest.TestCase):
         # `failed` не шлём: он значит «попробуем позже», а пробовать нечего
         self.assertEqual(out['failed'], [])
         self.assertEqual(out['restored'], 0)
-        # Движок закрыт и профиль отпущен — окно входа должно остаться доступным
+        # Движок закрыт и профиль отпущен - окно входа должно остаться доступным
         self.assertTrue(self.engines[0].closed)
         self.assertFalse(k.running)
 
@@ -420,7 +420,7 @@ class HeadlessSettleTests(unittest.TestCase):
         return Skeleton
 
     def test_load_finished_waits_for_cookies_instead_of_giving_up(self):
-        """Куки профиля приходят после загрузки — и попытка обязана их дождаться."""
+        """Куки профиля приходят после загрузки - и попытка обязана их дождаться."""
         got = []
         page = self.page()(got.append, lambda reason: got.append(reason))
         page._on_load_finished(True)
@@ -428,7 +428,7 @@ class HeadlessSettleTests(unittest.TestCase):
         self.assertTrue(page._settle.isActive())
 
     def test_cookie_after_load_shortens_the_wait_but_does_not_end_it(self):
-        """Сессионная кука — сигнал «почти всё», а не «всё».
+        """Сессионная кука - сигнал «почти всё», а не «всё».
 
         Уйти прямо по ней значит унести 4 куки вместо 25: `remixnsid`, `httoken` и
         прочие приезжают следом, а без них VK показывает страницу входа."""
@@ -466,7 +466,7 @@ class HeadlessSettleTests(unittest.TestCase):
         self.assertEqual(len(got[0]), 3)
 
     def test_cookie_from_another_domain_does_not_end_the_attempt(self):
-        """`.vk.com` приходит первой, нужная — следом, при переходе на m.vk.ru.
+        """`.vk.com` приходит первой, нужная - следом, при переходе на m.vk.ru.
 
         Уйти по чужой куке значило бы бросить страницу на полпути и вернуть
         keeper'у набор без сессии для рабочего домена."""

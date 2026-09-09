@@ -1,11 +1,11 @@
-"""Поиск везде — одно окно вместо трёх разделов.
+"""Поиск везде - одно окно вместо трёх разделов.
 
 Открывается по Ctrl+K. Запрос уходит сразу во все источники: VK, YouTube и
 библиотеку на диске. Каждый источник ищет в своём фоновом потоке и показывается,
-как только ответил, — самый быстрый не ждёт самого медленного.
+как только ответил, - самый быстрый не ждёт самого медленного.
 
 Два обязательных условия. Первое: ответ устаревшего запроса не должен затирать
-новый — за этим следит номер поколения (`_gen`). Второе: окно не должно
+новый - за этим следит номер поколения (`_gen`). Второе: окно не должно
 блокироваться, поэтому в UI-потоке здесь не происходит ни одного сетевого вызова.
 
 Библиотека читается с диска, поэтому список файлов держится в коротком кэше:
@@ -103,7 +103,7 @@ class GlobalSearchDialog(QDialog):
         box.addWidget(tabs)
 
         self.list = TrackListWidget(self)
-        # Включили трек — окно поиска больше не нужно
+        # Включили трек - окно поиска больше не нужно
         self.list.play_requested.connect(lambda *_a: self.accept())
         box.addWidget(SelectionBar(self.list))
         box.addWidget(self.list, 1)
@@ -119,7 +119,7 @@ class GlobalSearchDialog(QDialog):
         self._input.setFocus()
         self._input.selectAll()
         if self._input.text().strip():
-            self._query = ''       # тот же запрос снаружи — искать заново
+            self._query = ''       # тот же запрос снаружи - искать заново
             self._start()
 
     def set_tab(self, name: str) -> None:
@@ -205,7 +205,7 @@ class GlobalSearchDialog(QDialog):
         return [from_local(media.path, media.name) for media in found[:LIMIT]]
 
     def _library_files(self) -> list:
-        """Список файлов с коротким кэшем: обход папок на каждую букву — дорого."""
+        """Список файлов с коротким кэшем: обход папок на каждую букву - дорого."""
         now = time.monotonic()
         if self._library_cache and now - self._library_cache[0] < LIBRARY_TTL:
             return self._library_cache[1]
@@ -248,7 +248,7 @@ class GlobalSearchDialog(QDialog):
 
     # ---------- клавиши ----------
     def keyPressEvent(self, event) -> None:
-        # Esc закрывает окно, но сначала — очищает непустой запрос
+        # Esc закрывает окно, но сначала - очищает непустой запрос
         if event.key() == Qt.Key_Escape and self._input.text():
             self._input.clear()
             return

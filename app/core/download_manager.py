@@ -44,7 +44,7 @@ class QueueItem:
     progress: float = 0.0
     speed: str = ''
     error: str = ''
-    path: str = ''   # заполняется по завершении — по нему открываем готовый файл
+    path: str = ''   # заполняется по завершении - по нему открываем готовый файл
     cancel_event: threading.Event = field(default_factory=threading.Event)
 
 
@@ -66,7 +66,7 @@ def progress_pct(d: dict) -> float:
 class ProgressTracker:
     """Прогресс задачи целиком, а не отдельного потока.
 
-    Видео и звук YouTube отдаёт разными файлами, и yt-dlp качает их по очереди —
+    Видео и звук YouTube отдаёт разными файлами, и yt-dlp качает их по очереди -
     каждый от нуля до ста. Полоса из-за этого дважды пробегала шкалу и откатывалась
     назад. Каждому потоку отводим свой участок шкалы: сколько их будет, заранее
     неизвестно (иногда формат один), поэтому первому отдаём почти всю шкалу, а
@@ -74,7 +74,7 @@ class ProgressTracker:
 
     # Верхние границы участков: первый поток, второй, все прочие
     _BOUNDS = (85.0, 95.0, 99.0)
-    # Байты скачаны, идёт склейка и конвертация — до конца недалеко, но и не мгновенно
+    # Байты скачаны, идёт склейка и конвертация - до конца недалеко, но и не мгновенно
     PROCESSING = 99.0
 
     def __init__(self) -> None:
@@ -138,7 +138,7 @@ class DownloadTask(QRunnable):
                     self.signals.status.emit(item.id, 'Отменено')
                     self.signals.finished.emit(item.id, False, 'Отменено')
                     return
-                # Обрыв связи — не повод терять задачу: VPN переподключается, прокси
+                # Обрыв связи - не повод терять задачу: VPN переподключается, прокси
                 # моргает, YouTube закрывает соединение. Пробуем ещё раз сами, чтобы
                 # не заставлять человека ставить всё в очередь заново.
                 if attempt < MAX_ATTEMPTS and is_network_error(exc):
@@ -183,7 +183,7 @@ class DownloadTask(QRunnable):
                 self.signals.progress.emit(
                     item.id, tracker.update(d), d.get('_speed_str', '') or '')
             elif d['status'] == 'finished':
-                # Байты скачаны, но впереди склейка и конвертация — 100% ставим в самом конце
+                # Байты скачаны, но впереди склейка и конвертация - 100% ставим в самом конце
                 self.signals.progress.emit(item.id, tracker.processing(), '')
                 self.signals.status.emit(item.id, 'Обработка')
 
@@ -227,7 +227,7 @@ class DownloadTask(QRunnable):
         track = item.vk_track
 
         if not track.get('url'):
-            # Список треков приходит без прямых ссылок — VK отдаёт их отдельным запросом
+            # Список треков приходит без прямых ссылок - VK отдаёт их отдельным запросом
             if self.vk_client is None:
                 raise ValueError('Нет активного входа в VK, войдите заново')
             self.signals.status.emit(item.id, 'Получаю ссылку')

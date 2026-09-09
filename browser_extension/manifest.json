@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Music Hub — отправка в приложение",
+  "name": "Music Hub - отправка в приложение",
   "version": "1.0.0",
   "description": "Отправляет ссылку с YouTube или VK в настольное приложение Music Hub: играть, в очередь, добавить в VK.",
   "permissions": [

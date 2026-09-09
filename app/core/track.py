@@ -20,7 +20,7 @@ SOURCE_VK = 'vk'
 SOURCE_YOUTUBE = 'youtube'
 SOURCE_LOCAL = 'local'
 
-# Что показывать рядом с названием — коротко, чтобы влезало в узкую панель плеера
+# Что показывать рядом с названием - коротко, чтобы влезало в узкую панель плеера
 SOURCE_LABELS = {SOURCE_VK: 'VK', SOURCE_YOUTUBE: 'YouTube', SOURCE_LOCAL: 'Файл'}
 
 
@@ -28,7 +28,7 @@ SOURCE_LABELS = {SOURCE_VK: 'VK', SOURCE_YOUTUBE: 'YouTube', SOURCE_LOCAL: 'Фа
 class Track:
     """Трек любого источника.
 
-    `uid` — устойчивый ключ внутри приложения: он же ключ в базе, в очереди и в
+    `uid` - устойчивый ключ внутри приложения: он же ключ в базе, в очереди и в
     избранном. Для VK это `vk:<owner>_<id>`, для YouTube `youtube:<video_id>`,
     для файла `local:<путь>`."""
 
@@ -36,7 +36,7 @@ class Track:
     source_id: str = ''
     title: str = ''
     artist: str = ''
-    duration: int = 0                 # секунды, 0 — неизвестно
+    duration: int = 0                 # секунды, 0 - неизвестно
     url: str = ''                     # страница источника, не прямая ссылка на файл
     cover: str = ''                   # обложка: адрес или локальный путь
     local_path: str = ''              # файл на диске, если он есть
@@ -189,7 +189,7 @@ def from_youtube(entry: dict) -> Track:
 def from_local(path: str, name: str = '', tags: dict | None = None) -> Track:
     """Трек из файла на диске.
 
-    `tags` — то, что прочитал core/tags.py (может быть пустым). Сами теги здесь не
+    `tags` - то, что прочитал core/tags.py (может быть пустым). Сами теги здесь не
     читаем: модель не должна ходить на диск, а вызывающая сторона знает, стоит ли
     тратить на это время (см. library.audio_track)."""
     base = name or os.path.splitext(os.path.basename(path))[0]
@@ -211,7 +211,7 @@ def from_local(path: str, name: str = '', tags: dict | None = None) -> Track:
     )
 
 
-# Разделители «исполнитель — название» в порядке убывания надёжности
+# Разделители «исполнитель - название» в порядке убывания надёжности
 _SEPARATORS = (' — ', ' – ', ' -- ', ' - ')
 
 

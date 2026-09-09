@@ -68,7 +68,7 @@ class TrayIcon(QObject):
         self._menu = menu  # QMenu без родителя нужно держать самим, иначе исчезнет
         self._icon.setContextMenu(menu)
 
-        # Панель с обложкой — основной способ управления; меню правой кнопкой
+        # Панель с обложкой - основной способ управления; меню правой кнопкой
         # остаётся запасным путём для тех, кому привычнее список пунктов
         self._flyout = TrayFlyout(player)
         self._flyout.open_window_requested.connect(self.toggle_window)
@@ -146,7 +146,7 @@ class TrayIcon(QObject):
         self._shuffle_action.setChecked(bool(enabled))
 
     def _on_repeat(self, mode: str) -> None:
-        # Меню у часов должно оставаться коротким, поэтому режим повтора —
+        # Меню у часов должно оставаться коротким, поэтому режим повтора -
         # один пункт с подписью, а не три отдельные строки
         self._repeat_action.setText({REPEAT_OFF: 'Повтор: выключен',
                                      REPEAT_ALL: 'Повтор: очередь',

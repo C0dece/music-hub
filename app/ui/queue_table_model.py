@@ -132,7 +132,7 @@ class QueueTableModel(QAbstractTableModel):
 
     def remove_rows(self, rows: list[int]) -> None:
         """Убрать строки из списка. Индексы пересобираем целиком: сдвигать их
-        по одной — самый простой способ разъехаться с моделью."""
+        по одной - самый простой способ разъехаться с моделью."""
         for row in sorted(set(rows), reverse=True):
             if 0 <= row < len(self._rows):
                 self.beginRemoveRows(QModelIndex(), row, row)

@@ -1,12 +1,12 @@
 """Офлайн-копии треков «Моей музыки».
 
-Кэш — это обычная загрузка, просто в свою папку: качает тот же DownloadManager,
+Кэш - это обычная загрузка, просто в свою папку: качает тот же DownloadManager,
 что и всё остальное (второго загрузчика в приложении быть не должно). Отличие
-только в адресе и в том, что о готовом файле мы сообщаем базе — трек получает
+только в адресе и в том, что о готовом файле мы сообщаем базе - трек получает
 `local_path`, и плеер сам предпочтёт его сети.
 
 Содержимое папки офлайна приложение считает своим: при превышении лимита самые
-давние копии удаляются. Поэтому она отдельная — то, что человек скачал руками в
+давние копии удаляются. Поэтому она отдельная - то, что человек скачал руками в
 «музыку», не трогаем никогда."""
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def offline_dir(settings: dict) -> str:
-    """Папка офлайна из настроек; пустое значение — папка по умолчанию."""
+    """Папка офлайна из настроек; пустое значение - папка по умолчанию."""
     return str(settings.get('offline_dir') or config.OFFLINE_DIR)
 
 
@@ -41,7 +41,7 @@ def folder_size(path: str) -> int:
 class OfflineCache(QObject):
     """Кто из треков лежит на диске и что сейчас качается."""
 
-    changed = Signal(str)        # uid — состояние офлайна изменилось
+    changed = Signal(str)        # uid - состояние офлайна изменилось
     failed = Signal(str, str)    # uid, текст ошибки
 
     def __init__(self, downloads, store, settings_provider, parent=None):
@@ -68,7 +68,7 @@ class OfflineCache(QObject):
             return uid in self._jobs.values()
 
     def owns(self, item_id: str) -> bool:
-        """Наша ли это задача — чтобы очередь не считала её обычной загрузкой."""
+        """Наша ли это задача - чтобы очередь не считала её обычной загрузкой."""
         with self._lock:
             return item_id in self._jobs
 
@@ -103,7 +103,7 @@ class OfflineCache(QObject):
             self.failed.emit(track.uid, 'Папка офлайна недоступна')
             return False
 
-        # Офлайн — всегда звук в свою папку, что бы ни стояло на вкладке загрузок
+        # Офлайн - всегда звук в свою папку, что бы ни стояло на вкладке загрузок
         override = {'mode': 'audio', 'music_dir': directory, 'video_dir': directory}
         # Свой ключ истории: иначе «пропускать уже скачанное» решило бы, что
         # ролик скачан, и обычная загрузка того же трека молча не состоялась бы
@@ -154,7 +154,7 @@ class OfflineCache(QObject):
         self.changed.emit(uid)
 
     def _is_ours(self, path: str) -> bool:
-        """Файл лежит в папке офлайна — значит, копию делали мы."""
+        """Файл лежит в папке офлайна - значит, копию делали мы."""
         try:
             root = os.path.normcase(os.path.abspath(self.directory()))
             target = os.path.normcase(os.path.abspath(path))

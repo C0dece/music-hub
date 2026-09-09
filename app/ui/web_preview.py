@@ -1,9 +1,9 @@
-"""Просмотр видео до скачивания — штатным плеером сайта внутри QtWebEngine.
+"""Просмотр видео до скачивания - штатным плеером сайта внутри QtWebEngine.
 
 Прямые ссылки на файлы YouTube отдаёт с googlevideo.com, а его режут по имени в
 TLS (см. `.agent/worklog.md`): QMediaPlayer ходит мимо настроек прокси приложения
 и до такого потока не доберётся. Chromium из QtWebEngine получает прокси теми же
-ключами, что и окно входа в VK, поэтому смотрим через встроенный плеер сайта —
+ключами, что и окно входа в VK, поэтому смотрим через встроенный плеер сайта -
 заодно не тратя трафик на скачивание того, что может не подойти."""
 import http.cookiejar
 import logging
@@ -26,14 +26,14 @@ _VK_VIDEO_ID = re.compile(r'video(-?\d+)_(\d+)')
 _YT_ID = re.compile(r'(?:v=|youtu\.be/|/embed/|/shorts/)([A-Za-z0-9_-]{11})')
 
 # Адрес, от имени которого показываем свою страницу с плеером. Домен ненастоящий и
-# в сеть за ним никто не ходит: он нужен только как origin — встроенный плеер
+# в сеть за ним никто не ходит: он нужен только как origin - встроенный плеер
 # YouTube требует, чтобы у страницы-хозяина он был, а «about:blank» не годится.
 _LOCAL_BASE = 'https://ytd.local/'
 
 # Своя страница ровно с одним плеером. Так открывается только видео, без ленты
-# рекомендаций, комментариев и остальной страницы YouTube — и заметно быстрее.
+# рекомендаций, комментариев и остальной страницы YouTube - и заметно быстрее.
 # Первой страницей окна /embed/ отдаёт «Error 153», а вложенным кадром на странице
-# со своим origin — работает (проверено).
+# со своим origin - работает (проверено).
 _YT_PAGE = """<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <style>
  html,body{margin:0;height:100%;background:#0d1015;overflow:hidden}
@@ -54,14 +54,14 @@ function onYouTubeIframeAPIReady() {
         document.getElementById('note').style.display = 'none';
         e.target.playVideo();
         // Проверку «подтвердите, что вы не робот» плеер ошибкой не считает: он просто
-        // не начинает играть. Состояния -1 и 5 через восемь секунд — это она (или
+        // не начинает играть. Состояния -1 и 5 через восемь секунд - это она (или
         // видео, которое тут не пойдёт), и обычная страница ролика с ней справляется.
         setTimeout(function () {
           var state = e.target.getPlayerState();
           if (state === -1 || state === 5) { fallback(); }
         }, 8000);
       },
-      // Запрещённое к встраиванию видео плеер не покажет — тогда уходим на
+      // Запрещённое к встраиванию видео плеер не покажет - тогда уходим на
       // обычную страницу ролика, там оно играет
       onError: fallback
     }
@@ -83,7 +83,7 @@ _cookies_source: str | None = None
 
 
 def preload_cookies(cookies_browser: str | None) -> None:
-    """Забрать куки YouTube из браузера пользователя — заранее и в фоне.
+    """Забрать куки YouTube из браузера пользователя - заранее и в фоне.
 
     Без них YouTube через прокси нередко отвечает «Sign in to confirm you're not a
     bot» вместо видео: для него это анонимный посетитель с адреса дата-центра.
@@ -106,7 +106,7 @@ def _read_cookies(cookies_browser: str) -> list:
 
 
 def _on_cookies_read(cookies, error) -> None:
-    """Не получилось — предпросмотр всё равно работает, просто как у гостя."""
+    """Не получилось - предпросмотр всё равно работает, просто как у гостя."""
     global _cookies
     if error or not cookies:
         logger.debug('предпросмотр: куки YouTube недоступны (%s)', error)
@@ -121,7 +121,7 @@ def _to_qt_cookie(cookie) -> QNetworkCookie:
     """http.cookiejar.Cookie → QNetworkCookie. SameSite=None обязателен: плеер живёт
     вложенным кадром на чужом домене, а куки без этой пометки туда не уходят."""
     qt_cookie = QNetworkCookie(cookie.name.encode(), (cookie.value or '').encode())
-    # У «__Host-…» домена быть не должно — с ним Chromium такую куку отбрасывает
+    # У «__Host-…» домена быть не должно - с ним Chromium такую куку отбрасывает
     if not cookie.name.startswith('__Host-'):
         qt_cookie.setDomain(cookie.domain)
     qt_cookie.setPath(cookie.path or '/')
@@ -150,7 +150,7 @@ def _shared_profile() -> QWebEngineProfile:
         # Иначе встроенный плеер ждёт клика по кнопке, которой в чужой вёрстке
         # может и не оказаться
         settings.setAttribute(QWebEngineSettings.PlaybackRequiresUserGesture, False)
-        # Пометка QtWebEngine в User-Agent — лишний повод показать нам проверку на
+        # Пометка QtWebEngine в User-Agent - лишний повод показать нам проверку на
         # робота; версия Chromium в строке остаётся настоящей
         _profile.setHttpUserAgent(re.sub(r'QtWebEngine/\S+ ', '', _profile.httpUserAgent()))
         _install_cookies(_profile)
@@ -158,7 +158,7 @@ def _shared_profile() -> QWebEngineProfile:
 
 
 def youtube_id(entry: dict) -> str:
-    """Идентификатор ролика из записи или из её ссылки; пусто — если не нашёлся."""
+    """Идентификатор ролика из записи или из её ссылки; пусто - если не нашёлся."""
     video_id = entry.get('id') or ''
     if re.fullmatch(r'[A-Za-z0-9_-]{11}', video_id):
         return video_id
@@ -185,7 +185,7 @@ def preview_url(source: str, entry: dict) -> str | None:
 
 
 def open_preview(parent, source: str, entry: dict, on_download=None) -> bool:
-    """Открыть предпросмотр записи. False — если по ссылке смотреть нечего."""
+    """Открыть предпросмотр записи. False - если по ссылке смотреть нечего."""
     url = preview_url(source, entry)
     if not url:
         return False
@@ -277,7 +277,7 @@ def _log_render_crash(status, exit_code: int) -> None:
     """Отрисовка страницы падает отдельным процессом, и молча.
 
     Для человека это выглядит как внезапно исчезнувшее окно: страница мертва, а
-    почему — нигде не записано. Строка в журнале отличает такое падение от обычного
+    почему - нигде не записано. Строка в журнале отличает такое падение от обычного
     выхода и показывает, что упал именно встроенный браузер, а не программа."""
     logger.warning('Встроенный браузер: процесс отрисовки завершился (%s, код %s)',
                    status, exit_code)
@@ -285,7 +285,7 @@ def _log_render_crash(status, exit_code: int) -> None:
 
 def _fill_proxy_auth(_url, authenticator, proxy_host: str) -> None:
     """Логин с паролем прямо в адресе прокси Chromium не принимает и спрашивает их
-    отдельным окном — подставляем сохранённые, как в окне входа в VK."""
+    отдельным окном - подставляем сохранённые, как в окне входа в VK."""
     user, password = proxy.credentials()
     if not user:
         logger.warning('Прокси %s требует логин, а он не задан в настройках', proxy_host)
@@ -295,5 +295,5 @@ def _fill_proxy_auth(_url, authenticator, proxy_host: str) -> None:
 
 
 def can_preview(url: str) -> bool:
-    """Годится ли ссылка для предпросмотра — YouTube или видео VK."""
+    """Годится ли ссылка для предпросмотра - YouTube или видео VK."""
     return url_detect.detect(url).source in ('youtube', 'vk_video')

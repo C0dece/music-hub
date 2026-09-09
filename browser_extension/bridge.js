@@ -47,7 +47,7 @@ export async function call(path, body) {
       return data;
     } catch (error) {
       lastError = error;
-      // Неверный ключ или отказ — перебирать остальные порты бессмысленно
+      // Неверный ключ или отказ - перебирать остальные порты бессмысленно
       if (/token|origin/i.test(String(error.message))) {
         break;
       }

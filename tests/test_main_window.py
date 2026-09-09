@@ -2,7 +2,7 @@
 
 Окно тяжёлое, поэтому всё, что лезет наружу, здесь отключено: значок у часов,
 глобальные клавиши, мост для расширения, вход в VK и чтение куков браузера.
-Проверяем ровно то, что ломается чаще всего, — раскладку и связи сигналов.
+Проверяем ровно то, что ломается чаще всего, - раскладку и связи сигналов.
 
 База своя, временная: тест не должен трогать настоящую историю прослушивания.
 """
@@ -81,7 +81,7 @@ class MainWindowTests(unittest.TestCase):
         self._patches.append(mock.patch.object(config, 'save_settings',
                                                lambda settings: None))
         # Отметку о блокировке уводим во временную папку. Без этого тесты писали её в
-        # настоящий config/ живого пользователя — с его собственным user_id, взятым из
+        # настоящий config/ живого пользователя - с его собственным user_id, взятым из
         # настоящего vk_token.json. Программа при следующем запуске честно читала эту
         # отметку и объявляла аккаунт заблокированным: прогон тестов оставлял человека
         # без музыки до нажатия «мой аккаунт разблокирован»
@@ -126,7 +126,7 @@ class MainWindowTests(unittest.TestCase):
 
     # ---------- навигация ----------
     def test_sections_open_their_pages(self):
-        """Меню слева выбирает раздел, вкладка внутри — страницу."""
+        """Меню слева выбирает раздел, вкладка внутри - страницу."""
         from app.ui import main_window as mw
         window = self.window
         for row, (_title, pages) in enumerate(mw.NAV_SECTIONS):
@@ -183,7 +183,7 @@ class MainWindowTests(unittest.TestCase):
         page._only_offline.setChecked(False)
 
     def test_finished_offline_copy_reaches_the_offline_filter(self):
-        """Копия докачалась в фоне — «Треки» узнают об этом сами, без чужих правок."""
+        """Копия докачалась в фоне - «Треки» узнают об этом сами, без чужих правок."""
         window = self.window
         track = yt('s3')
         window._store.save_to_library(track)
@@ -212,7 +212,7 @@ class MainWindowTests(unittest.TestCase):
         self.assertEqual(window._pages.currentIndex(), mw.PAGE_VK)
 
     def test_favorites_open_playlists(self):
-        """Отдельного «Избранного» нет — переход ведёт в «Любимое»."""
+        """Отдельного «Избранного» нет - переход ведёт в «Любимое»."""
         from app.ui import main_window as mw
         window = self.window
         store_mod._instance.add_favorite(yt())
@@ -241,15 +241,15 @@ class MainWindowTests(unittest.TestCase):
                               f'{mw.PAGE_TITLES[index]}: не прочитает базу при показе')
 
     def test_new_pages_show_something_when_opened_first_time(self):
-        """Открыли «С компьютера» на чистой базе — видно подсказку, не пустоту."""
+        """Открыли «С компьютера» на чистой базе - видно подсказку, не пустоту."""
         for name, page in (('local', self.window._local_page),):
             with self.subTest(page=name):
                 self.window._go_to(name)
                 self.settle()
                 # `isHidden`, а не `isVisible`: окно в тесте не показывают, и
-                # `isVisible` ложен у всего подряд — нужно состояние самого виджета
+                # `isVisible` ложен у всего подряд - нужно состояние самого виджета
                 self.assertFalse(page._empty.isHidden(),
-                                 'пустой список без подсказки — это пустая рамка')
+                                 'пустой список без подсказки - это пустая рамка')
                 self.assertTrue(page._list.isHidden(),
                                 'пустой список не должен занимать место')
 
@@ -257,7 +257,7 @@ class MainWindowTests(unittest.TestCase):
     def quiet_mix(self):
         """Собирать волну по-настоящему тесту нечем: за ней лезут в сеть.
 
-        Проверяем проводку — переход и предзаполненные ручки, — поэтому сборку
+        Проверяем проводку - переход и предзаполненные ручки, - поэтому сборку
         подменяем и заодно ловим конфигурацию, с которой её позвали.
         """
         asked: list = []
@@ -285,7 +285,7 @@ class MainWindowTests(unittest.TestCase):
     def test_launch_cards_preload_the_mix_settings(self):
         """Плитка не чёрный ящик: её настройки видно на странице микса.
 
-        Проверяем именно долю источника — ради неё плитки и различаются.
+        Проверяем именно долю источника - ради неё плитки и различаются.
         """
         from app.ui import home_page as hp
         window = self.window
@@ -305,7 +305,7 @@ class MainWindowTests(unittest.TestCase):
         from app.ui import main_window as mw
         window = self.window
         self.quiet_mix()
-        launch = hp.LAUNCHES[-1]        # «Из своих файлов» — не требует сети
+        launch = hp.LAUNCHES[-1]        # «Из своих файлов» - не требует сети
         window._home_page.mix_requested.emit(launch.page, launch.config().to_dict())
         self.assertEqual(window._pages.currentIndex(),
                          mw.PAGE_NAMES.index(launch.page))
@@ -324,7 +324,7 @@ class MainWindowTests(unittest.TestCase):
 
     # ---------- моя музыка ----------
     def test_library_toggle_adds_and_removes(self):
-        """«В мою музыку» — одно действие на всё выделение, туда и обратно."""
+        """«В мою музыку» - одно действие на всё выделение, туда и обратно."""
         from app.ui import main_window as mw
         window = self.window
         window._toggle_library([yt(), yt('b', title='Faint')])
@@ -351,7 +351,7 @@ class MainWindowTests(unittest.TestCase):
             window._toggle_favorites([yt()])
         self.assertEqual([t.uid for t in ensure.call_args[0][0]], [yt().uid])
 
-        # Снятое сердечко копию не удаляет — место освободит лимит
+        # Снятое сердечко копию не удаляет - место освободит лимит
         with mock.patch.object(window._offline, 'ensure') as ensure:
             window._toggle_favorites([yt()])
         ensure.assert_not_called()
@@ -365,7 +365,7 @@ class MainWindowTests(unittest.TestCase):
         ensure.assert_not_called()
 
     def test_counters_stay_on_their_labels(self):
-        """Счётчик главной страницы раздела — в меню, остальных — на вкладках."""
+        """Счётчик главной страницы раздела - в меню, остальных - на вкладках."""
         from app.ui import main_window as mw
         window = self.window
         window._nav_counts[mw.PAGE_QUEUE] = 3
@@ -405,7 +405,7 @@ class MainWindowTests(unittest.TestCase):
         """Полоса плеера не растёт ни на одном кадре изменения размера.
 
         Раньше её высота была гибкой, и на кадре, где середина окна ещё не
-        пересчиталась, полоса получала 94, 134 или все 174 px вместо 73 — с
+        пересчиталась, полоса получала 94, 134 или все 174 px вместо 73 - с
         пустотой над собой. При перетаскивании края мышью такой кадр приходил
         на каждое движение, и интерфейс выглядел подтормаживающим и чёрным."""
         window = self.window
@@ -460,7 +460,7 @@ class MainWindowTests(unittest.TestCase):
         self.assertEqual(self.clip_run(track), [])
 
     def test_clip_is_dropped_in_audio_only_mode(self):
-        """Пока искали, режим сменили на «только звук» — картинки больше нет."""
+        """Пока искали, режим сменили на «только звук» - картинки больше нет."""
         from app.core.player_controller import MODE_AUDIO
 
         track = yt()
@@ -479,8 +479,8 @@ class MainWindowTests(unittest.TestCase):
     def test_the_same_song_is_searched_once(self):
         """Второй заход за тем же клипом в сеть не идёт.
 
-        Раздел «Видео» пересобирается на каждый чих — на смену размера окна, на
-        возврат из полного экрана, — и без этой памяти каждый такой пересчёт
+        Раздел «Видео» пересобирается на каждый чих - на смену размера окна, на
+        возврат из полного экрана, - и без этой памяти каждый такой пересчёт
         оборачивался бы новым запросом."""
         from app.core.player_controller import MODE_VIDEO
         from app.ui import main_window as mw
@@ -501,7 +501,7 @@ class MainWindowTests(unittest.TestCase):
 
         Раньше окно молчало о состоянии, пока сцена скрыта, и «играю» пропадало.
         Человек открывал раздел, а поверх картинки стояла непрозрачная подпись
-        «Готовим видео…» — та самая чернота, которая не уходила и после
+        «Готовим видео…» - та самая чернота, которая не уходила и после
         выключения видеорежима."""
         from app.core.player_controller import STATE_LOADING, STATE_PLAYING
 
@@ -569,7 +569,7 @@ class MainWindowTests(unittest.TestCase):
         self.assertEqual(self.window._player.current.uid, seed.uid)
 
     def test_late_radio_answer_does_not_restart_playback(self):
-        """Пока ходили в сеть, человек включил другое — прерывать его нельзя."""
+        """Пока ходили в сеть, человек включил другое - прерывать его нельзя."""
         seed = yt(title='Sextape', artist='Deftones')
         other = yt('z', title='One Step Closer')
         found = [yt('b', title='Digital Bath')]
@@ -590,7 +590,7 @@ class MainWindowTests(unittest.TestCase):
 
     # ---------- тихий перезаход в VK ----------
     def test_failed_silent_login_is_retried_not_surrendered(self):
-        """Первая неудача — не повод просить пароль: пробуем снова сами."""
+        """Первая неудача - не повод просить пароль: пробуем снова сами."""
         with mock.patch.object(self.window._vk_panel, 'show_session_lost') as shown:
             self.window._on_vk_session_lost('нет сети')
         # Кнопку входа не показали: автоматика ещё не отработала своё
@@ -598,7 +598,7 @@ class MainWindowTests(unittest.TestCase):
         self.assertTrue(self.window._vk_session_retry.isActive())
 
     def test_button_appears_only_when_pauses_reach_the_limit(self):
-        """Дошли до предельной паузы — молчать дальше нечестно, показываем кнопку."""
+        """Дошли до предельной паузы - молчать дальше нечестно, показываем кнопку."""
         from app.ui import main_window as mw
         self.window._vk_session_delay = mw.VK_SESSION_RETRY_MAX
         with mock.patch.object(self.window._vk_panel, 'show_session_lost') as shown:
@@ -609,8 +609,8 @@ class MainWindowTests(unittest.TestCase):
         """Сброс счётчика перед попыткой отменял весь антишторм keeper'а.
 
         Из-за него окно приводило keeper к VK каждые пять минут без конца, а сторож
-        сессии добавлял свой запрос за треками каждые десять — за час набиралось около
-        пятнадцати неудачных обращений, и VK блокировал аккаунт. Считать неудачи —
+        сессии добавлял свой запрос за треками каждые десять - за час набиралось около
+        пятнадцати неудачных обращений, и VK блокировал аккаунт. Считать неудачи -
         работа keeper'а, окно только предлагает попытку."""
         with mock.patch.object(self.window._vk_keeper, 'reset') as reset,                 mock.patch.object(self.window._vk_keeper, 'try_restore',
                                   return_value=True):
@@ -618,14 +618,14 @@ class MainWindowTests(unittest.TestCase):
         reset.assert_not_called()
 
     def test_watchdog_stays_quiet_while_a_repair_is_pending(self):
-        """Починка уже назначена — лишний запрос за треками только злит VK."""
+        """Починка уже назначена - лишний запрос за треками только злит VK."""
         self.window._vk_client = mock.Mock(user_id=1)
         try:
             # Без назначенной починки сторож ходит в VK как обычно
             with mock.patch('app.ui.main_window.run_async') as called:
                 self.window._check_vk_session()
             called.assert_called_once()
-            # А с ней — молчит: ответ и так известен, сессия мертва
+            # А с ней - молчит: ответ и так известен, сессия мертва
             self.window._schedule_vk_session_retry()
             with mock.patch('app.ui.main_window.run_async') as called:
                 self.window._check_vk_session()
@@ -679,7 +679,7 @@ class MainWindowTests(unittest.TestCase):
         Так и было: `_on_vk_account_blocked` звал `save_vk_blocked`, а тот писал в
         настоящий `config/`, подставляя user_id из настоящего `vk_token.json`. Отметка
         переживала прогон, и следующий запуск программы честно объявлял живой аккаунт
-        заблокированным. Ловушка была невидимой — её никто не проверял."""
+        заблокированным. Ловушка была невидимой - её никто не проверял."""
         self.assertNotEqual(config.VK_BLOCKED_FILE, config.CONFIG_DIR / 'vk_blocked.json')
         with mock.patch.object(self.window._vk_panel, 'show_account_blocked'):
             self.window._on_vk_account_blocked('заблокирован')
@@ -715,7 +715,7 @@ class MainWindowTests(unittest.TestCase):
         """Проверка одна на запуск, а не одна на попытку.
 
         Иначе таймер повторов превратил бы отметку в пустой звук и погнал бы к VK
-        поток запросов по аккаунту, который тот уже пометил, — ровно то поведение,
+        поток запросов по аккаунту, который тот уже пометил, - ровно то поведение,
         из-за которого блокировку и не снимают."""
         with mock.patch.object(config, 'load_vk_blocked', lambda: {'user_id': 1,
                                                                   'since': time.time()}),                 mock.patch.object(config, 'load_vk_token',
@@ -729,7 +729,7 @@ class MainWindowTests(unittest.TestCase):
     def test_reading_the_mark_does_not_rewrite_it(self):
         """Отказ по своей же отметке ничего не записывает.
 
-        Прежде эта ветка звала `_on_vk_account_blocked`, а тот — `save_vk_blocked`:
+        Прежде эта ветка звала `_on_vk_account_blocked`, а тот - `save_vk_blocked`:
         состояние подтверждало само себя, ни разу не спросив VK."""
         with mock.patch.object(config, 'load_vk_blocked', lambda: {'user_id': 1,
                                                                   'since': time.time()}),                 mock.patch.object(config, 'save_vk_blocked') as saved,                 mock.patch.object(self.window._vk_panel, 'show_account_blocked'):
@@ -744,13 +744,13 @@ class GeometryAuditTests(MainWindowTests):
 
     Проверка на глаз здесь невозможна, а жалоба была именно про это: «UI много
     где неправильно накладывается друг на друга». Поэтому смотрим геометрию
-    числами — все страницы на сетке размеров от минимума окна до 2560×1440,
+    числами - все страницы на сетке размеров от минимума окна до 2560×1440,
     включая заведомо неудобные крайности вроде узкого высокого и широкого низкого.
 
     Порог в 2 пикселя намеренный: рамки и тени соседних виджетов законно делят
     общий пиксель, и без запаса тест ловил бы оформление, а не наложение."""
 
-    # Не круглые числа ради красоты: 664×320 — минимум окна, 1920×340 и 664×1080 —
+    # Не круглые числа ради красоты: 664×320 - минимум окна, 1920×340 и 664×1080 -
     # крайности, на которых раскладка ломалась раньше всего
     SIZES = ((664, 320), (700, 340), (760, 320), (800, 400), (900, 560),
              (1024, 640), (1100, 500), (1280, 720), (1280, 800), (1366, 768),
@@ -760,7 +760,7 @@ class GeometryAuditTests(MainWindowTests):
 
     @staticmethod
     def _in_scroll(widget) -> bool:
-        """Внутри списка выезжать за рамку — нормально: на то он и прокрутка."""
+        """Внутри списка выезжать за рамку - нормально: на то он и прокрутка."""
         from PySide6.QtWidgets import QAbstractScrollArea
         parent = widget.parentWidget()
         while parent is not None:
@@ -780,7 +780,7 @@ class GeometryAuditTests(MainWindowTests):
         from PySide6.QtWidgets import QWidget, QStackedWidget
         found = []
         for parent in [self.window] + self.window.findChildren(QWidget):
-            # Страницы стопки лежат друг на друге по устройству — это не дефект
+            # Страницы стопки лежат друг на друге по устройству - это не дефект
             if not parent.isVisible() or isinstance(parent, QStackedWidget):
                 continue
             kids = self._visible_kids(parent)

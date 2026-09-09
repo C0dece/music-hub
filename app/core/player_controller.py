@@ -1,6 +1,6 @@
 """Единый плеер приложения: одна очередь, один текущий трек, разные источники звука.
 
-Источники играются по-разному — файл и VK через QtMultimedia, YouTube через
+Источники играются по-разному - файл и VK через QtMultimedia, YouTube через
 встроенный плеер сайта в QtWebEngine (прямые ссылки googlevideo до QMediaPlayer
 не доходят, см. app/ui/web_preview.py). Чтобы интерфейс об этом не знал, разница
 спрятана в «движки» (PlaybackBackend), а наружу торчит один PlayerController.
@@ -53,7 +53,7 @@ REPEAT_ORDER = (REPEAT_OFF, REPEAT_ALL, REPEAT_ONE)
 MODE_AUTO, MODE_AUDIO, MODE_VIDEO = 'auto', 'audio', 'video'
 
 # Сколько треков должно остаться в очереди, чтобы попросить следующую порцию
-# рекомендаций. Пять — это примерно пятнадцать минут музыки: сходить в сеть
+# рекомендаций. Пять - это примерно пятнадцать минут музыки: сходить в сеть
 # успеваем с запасом, а очередь не разрастается на сотни строк.
 AUTOPLAY_TAIL = 5
 AUTOPLAY_BATCH = 15
@@ -103,11 +103,11 @@ class PlaybackBackend(QObject):
 
 
 class QtMediaBackend(PlaybackBackend):
-    """Файлы на диске и аудио VK — штатным QMediaPlayer.
+    """Файлы на диске и аудио VK - штатным QMediaPlayer.
 
     Ссылку VK получаем в последний момент и только для того трека, который сейчас
     включают: прямые ссылки живут недолго, а запрашивать их для всей очереди
-    заранее — это минуты ожидания на большой библиотеке."""
+    заранее - это минуты ожидания на большой библиотеке."""
 
     def __init__(self, vk_client_provider=None, parent=None):
         super().__init__(parent)
@@ -133,7 +133,7 @@ class QtMediaBackend(PlaybackBackend):
         """Куда рисовать картинку локального видео.
 
         Создаём по требованию: у большинства очередей видео нет, а QVideoWidget
-        поднимает графический стек. Виджет один на всё приложение — его
+        поднимает графический стек. Виджет один на всё приложение - его
         показывает VideoStage, как и страницу YouTube."""
         if self._video is None:
             from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -243,7 +243,7 @@ class QtMediaBackend(PlaybackBackend):
 class PlayerController(QObject):
     """Что играет, что дальше и что с этим делать.
 
-    Весь интерфейс — панель плеера, списки, значок у часов, горячие клавиши —
+    Весь интерфейс - панель плеера, списки, значок у часов, горячие клавиши -
     обращается только сюда."""
 
     track_changed = Signal(object)        # Track или None
@@ -295,7 +295,7 @@ class PlayerController(QObject):
         self.add_backend(self._qt_backend)
 
     def video_widget(self):
-        """Видеовыход для файлов — окну нужно, чтобы показать его на экране."""
+        """Видеовыход для файлов - окну нужно, чтобы показать его на экране."""
         return self._qt_backend.video_widget
 
     # ---------- настройка ----------
@@ -392,7 +392,7 @@ class PlayerController(QObject):
         self.play_tracks([track], 0)
 
     def enqueue(self, tracks, play_next: bool = False) -> int:
-        """Добавить в очередь. Если ничего не играет — начать играть добавленное."""
+        """Добавить в очередь. Если ничего не играет - начать играть добавленное."""
         if isinstance(tracks, Track):
             tracks = [tracks]
         tracks = [t for t in tracks if t is not None]
@@ -473,7 +473,7 @@ class PlayerController(QObject):
         self.stop()
 
     def previous(self) -> None:
-        # Как у всех плееров: в начале трека — предыдущий, дальше — в начало текущего
+        # Как у всех плееров: в начале трека - предыдущий, дальше - в начало текущего
         if self._position > 3000 and self._backend is not None:
             self._backend.seek(0)
             return
@@ -541,7 +541,7 @@ class PlayerController(QObject):
         self.set_autoplay(not self._autoplay)
 
     def set_mode(self, mode: str) -> None:
-        """Аудио/видео/авто. Воспроизведение при этом не перезапускается —
+        """Аудио/видео/авто. Воспроизведение при этом не перезапускается -
         интерфейс просто прячет или показывает область видео."""
         mode = mode if mode in (MODE_AUTO, MODE_AUDIO, MODE_VIDEO) else MODE_AUTO
         if mode == self._mode:
@@ -560,7 +560,7 @@ class PlayerController(QObject):
     def _request_recommendations(self, advance: bool) -> bool:
         """Попросить следующую порцию. Возвращает True, если запрос ушёл или уже идёт.
 
-        `advance` — очередь кончилась прямо сейчас, и как только придут треки,
+        `advance` - очередь кончилась прямо сейчас, и как только придут треки,
         нужно сразу включить первый из них."""
         if not self._autoplay or self._recommender is None:
             return False
@@ -588,7 +588,7 @@ class PlayerController(QObject):
         def on_done(tracks, error):
             self._rec_busy = False
             if token != self._rec_token:
-                return  # ответ на старый запрос — очередь с тех пор сменилась
+                return  # ответ на старый запрос - очередь с тех пор сменилась
             if error:
                 logger.info('Автоплей: рекомендации не пришли: %s', error)
             self._on_recommendations(list(tracks or []))
@@ -714,7 +714,7 @@ class PlayerController(QObject):
 
     # ---------- внутреннее ----------
     def _pick_backend(self, track: Track) -> PlaybackBackend | None:
-        # Офлайн-копия ролика YouTube — это только звук. Когда ждут картинку,
+        # Офлайн-копия ролика YouTube - это только звук. Когда ждут картинку,
         # играть надо со страницы источника, иначе на видеополосе осталась бы
         # пустая страница, а звук шёл бы мимо неё
         if (track.source == SOURCE_YOUTUBE and track.cached
@@ -824,7 +824,7 @@ class PlayerController(QObject):
         if self.sender() is not self._backend:
             return
         if not self._logged:
-            # Трек доиграл до конца — это прослушивание независимо от порогов
+            # Трек доиграл до конца - это прослушивание независимо от порогов
             self._write_history(finished=True)
         if self._repeat == REPEAT_ONE:
             self._play_current()
@@ -847,7 +847,7 @@ class PlayerController(QObject):
     def _try_fallback(self, track: Track, reason: str) -> bool:
         """Подменить источник тем же треком из другого места.
 
-        VK не отдал файл — играем с YouTube, и наоборот. Меняем именно запись в
+        VK не отдал файл - играем с YouTube, и наоборот. Меняем именно запись в
         очереди, чтобы «дальше» и «назад» продолжали работать."""
         if self._store is None:
             return False

@@ -1,14 +1,14 @@
 """Поиск JavaScript-движка для yt-dlp.
 
 Начиная с версий 2025 года YouTube отдаёт ссылки на потоки, подписанные JS-функцией
-из плеера (signature + «n challenge»). Считать её yt-dlp сам больше не умеет — нужен
+из плеера (signature + «n challenge»). Считать её yt-dlp сам больше не умеет - нужен
 внешний JS-рантайм (`--js-runtimes`) и скрипты решателя из пакета `yt-dlp-ejs`.
 Без них извлечение заканчивается «The page needs to be reloaded» / «Requested format
 is not available»: форматы просто выкидываются как нерабочие.
 
-Поэтому рядом с приложением лежит `runtime/qjs.exe` (QuickJS-ng, ~2 МБ) — самый
+Поэтому рядом с приложением лежит `runtime/qjs.exe` (QuickJS-ng, ~2 МБ) - самый
 маленький из поддерживаемых движков. Если его нет, ищем установленные deno/node/bun
-в PATH, а если нет и их — говорим об этом человеческим языком вместо ошибки yt-dlp.
+в PATH, а если нет и их - говорим об этом человеческим языком вместо ошибки yt-dlp.
 """
 import logging
 import os
@@ -19,7 +19,7 @@ from .. import config
 
 logger = logging.getLogger(__name__)
 
-# Минимальные версии — из yt_dlp/utils/_jsruntime.py. Проверять их самим не нужно:
+# Минимальные версии - из yt_dlp/utils/_jsruntime.py. Проверять их самим не нужно:
 # yt-dlp сам отсеет неподходящий движок, здесь важен только порядок предпочтения.
 _PATH_RUNTIMES = ('deno', 'node', 'bun', 'qjs')
 
@@ -89,7 +89,7 @@ def describe() -> str:
 
 
 def download_bundled(progress_cb=None) -> str:
-    """Скачать QuickJS в папку приложения. progress_cb(получено, всего) — для индикатора."""
+    """Скачать QuickJS в папку приложения. progress_cb(получено, всего) - для индикатора."""
     dest = config.JS_RUNTIME_DOWNLOAD
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix('.part')

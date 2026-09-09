@@ -1,6 +1,6 @@
 """Горячие клавиши, работающие поверх других окон (Windows).
 
-Своей зависимости ради этого не берём: RegisterHotKey есть в системе, а ctypes —
+Своей зависимости ради этого не берём: RegisterHotKey есть в системе, а ctypes -
 в стандартной поставке Python. Всё, что специфично для Windows, заперто в этом
 модуле: на других системах менеджер просто ничего не делает.
 """
@@ -88,14 +88,14 @@ class HotkeyManager(QObject):
         self._thread_id = 0
         self._ready = threading.Event()
         self._bindings: dict[str, tuple[int, int]] = {}
-        self.failed: list[str] = []  # что система не отдала — занято другой программой
+        self.failed: list[str] = []  # что система не отдала - занято другой программой
 
     @property
     def running(self) -> bool:
         return self._thread is not None and self._thread.is_alive()
 
     def start(self, bindings: dict) -> bool:
-        """bindings: {'play_pause': 'Ctrl+Alt+Space', ...}. False — клавиши не работают."""
+        """bindings: {'play_pause': 'Ctrl+Alt+Space', ...}. False - клавиши не работают."""
         self.stop()
         if not WINDOWS:
             logger.info('Горячие клавиши доступны только в Windows')

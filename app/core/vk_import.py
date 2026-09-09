@@ -1,11 +1,11 @@
-"""Перенос трека в «Мою музыку» VK — то, что делает кнопка «+ VK».
+"""Перенос трека в «Мою музыку» VK - то, что делает кнопка «+ VK».
 
 Порядок такой:
 
-1. Уже переносили — берём готовую связку из базы и ничего не делаем.
+1. Уже переносили - берём готовую связку из базы и ничего не делаем.
 2. Ищем трек в VK и, если нашлась подходящая запись, добавляем её к себе
    (`audio.add`). Это мгновенно и не тратит трафик.
-3. Не нашли — качаем звук существующим загрузчиком и заливаем существующей
+3. Не нашли - качаем звук существующим загрузчиком и заливаем существующей
    очередью заливки. Второго загрузчика и второго заливщика здесь нет.
 
 Сервис ничего не знает про окна: наружу идут сигналы, показывает их интерфейс.
@@ -23,7 +23,7 @@ from .track import SOURCE_VK, Track, from_vk
 
 logger = logging.getLogger(__name__)
 
-# Состояния переноса — они же подписи на кнопке
+# Состояния переноса - они же подписи на кнопке
 STATE_SEARCHING = 'searching'
 STATE_ASKING = 'asking'
 STATE_ADDING = 'adding'
@@ -44,13 +44,13 @@ STATE_LABELS = {
 
 
 class VkImportService(QObject):
-    """Очередь переносов «+ VK». На один трек — не больше одного переноса разом."""
+    """Очередь переносов «+ VK». На один трек - не больше одного переноса разом."""
 
     # uid трека, состояние (STATE_*), подпись для кнопки
     state_changed = Signal(str, str, str)
     # uid, получилось ли, текст для человека
     finished = Signal(str, bool, str)
-    # uid, список (Track, оценка) — похожих записей несколько, нужен выбор человека
+    # uid, список (Track, оценка) - похожих записей несколько, нужен выбор человека
     ambiguous = Signal(str, object)
 
     def __init__(self, client_provider, uploader, download_manager,
@@ -89,7 +89,7 @@ class VkImportService(QObject):
         return ''
 
     def _is_mine(self, track: Track) -> bool:
-        """Запись VK лежит в вашей музыке, если её владелец — вы.
+        """Запись VK лежит в вашей музыке, если её владелец - вы.
 
         Треки из поиска и подборок тоже помечены `in_vk`: они в VK есть, но
         не у вас, и добавить их к себе можно."""
@@ -110,7 +110,7 @@ class VkImportService(QObject):
 
     # ---------- запуск ----------
     def add(self, track: Track) -> bool:
-        """Начать перенос. False — если делать нечего или он уже идёт."""
+        """Начать перенос. False - если делать нечего или он уже идёт."""
         if track is None:
             return False
         uid = track.uid
@@ -189,7 +189,7 @@ class VkImportService(QObject):
         run_async(search, on_done)
 
     def choose(self, uid: str, track: Track | None) -> None:
-        """Ответ на сигнал `ambiguous`: выбранная запись VK или None — «качать»."""
+        """Ответ на сигнал `ambiguous`: выбранная запись VK или None - «качать»."""
         if uid not in self._jobs:
             return
         if track is None:
@@ -219,7 +219,7 @@ class VkImportService(QObject):
                 return
             mapped = found
             if isinstance(saved, dict) and saved.get('id'):
-                # VK кладёт к себе копию записи — сохраняем именно её координаты
+                # VK кладёт к себе копию записи - сохраняем именно её координаты
                 mapped = from_vk({'id': saved['id'], 'owner_id': saved.get('owner_id'),
                                   'artist': found.artist, 'title': found.title,
                                   'duration': found.duration, 'cover': found.cover})
@@ -303,7 +303,7 @@ class VkImportService(QObject):
                               'artist': saved.get('artist') or track.artist,
                               'title': saved.get('title') or track.title,
                               'duration': track.duration})
-        # Координат VK может и не быть — тогда запоминаем хотя бы сам факт переноса
+        # Координат VK может и не быть - тогда запоминаем хотя бы сам факт переноса
         self._succeed(uid, mapped, 'upload')
 
     # ---------- итоги ----------

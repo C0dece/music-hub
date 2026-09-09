@@ -1,10 +1,10 @@
 """Список треков, общий для всех разделов музыки.
 
 Одна и та же строка нужна в результатах YouTube, в плейлистах, в избранном и на
-главной — поэтому список один, а разделы только подключаются к его сигналам.
+главной - поэтому список один, а разделы только подключаются к его сигналам.
 
 Строки рисует делегат, а не отдельный виджет на каждую: полторы тысячи треков VK
-в виде полутора тысяч QWidget окно не переживёт. Обложка запрашивается лениво —
+в виде полутора тысяч QWidget окно не переживёт. Обложка запрашивается лениво -
 только когда строка действительно попала на экран."""
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ ROW_HEIGHT = COVER + PADDING * 2
 # Плашка метки: высота под строку списка, отступы по бокам под скругление
 BADGE_HEIGHT = 20
 BADGE_PAD = 9
-# Готовое состояние — кружок со значком: «✓ офлайн» занимало половину свободного
+# Готовое состояние - кружок со значком: «✓ офлайн» занимало половину свободного
 # места строки и читалось как надпись, а не как признак файла
 MARK_SIZE = 22
 MARK_GLYPH = 13
@@ -40,7 +40,7 @@ MARK_ICONS = {
 }
 # Режим выбора: сколько держать кнопку, чтобы он включился, и размер галки
 HOLD_MS = 450
-HOLD_SLIP = 12          # сдвинули мышь сильнее — это уже не удержание
+HOLD_SLIP = 12          # сдвинули мышь сильнее - это уже не удержание
 CHECK_SIZE = 22
 
 def format_duration(seconds: int) -> str:
@@ -69,7 +69,7 @@ class TrackDelegate(QStyledItemDelegate):
 
     @staticmethod
     def _fill(painter, rect, color: str) -> None:
-        """Подсветка строки скруглённой плашкой — как у карточек в остальном окне."""
+        """Подсветка строки скруглённой плашкой - как у карточек в остальном окне."""
         path = QPainterPath()
         path.addRoundedRect(rect.adjusted(2, 1, -2, -1), 10, 10)
         painter.fillPath(path, QColor(color))
@@ -218,16 +218,16 @@ class TrackListWidget(QListWidget):
     enqueue_requested = Signal(object, bool)  # список треков, ставить ли следующим
     add_vk_requested = Signal(object)         # список треков
     favorite_requested = Signal(object)       # список треков
-    library_requested = Signal(object)        # список треков — «Моя музыка», переключить
-    offline_requested = Signal(object)        # список треков — офлайн-копия, переключить
+    library_requested = Signal(object)        # список треков - «Моя музыка», переключить
+    offline_requested = Signal(object)        # список треков - офлайн-копия, переключить
     download_requested = Signal(object)       # список треков
     open_source_requested = Signal(object)    # один трек
-    radio_requested = Signal(object)          # один трек — запустить по нему радио
+    radio_requested = Signal(object)          # один трек - запустить по нему радио
     remove_requested = Signal(object)         # номера строк (в очереди)
-    hide_requested = Signal(object)           # список треков — «не нравится»
+    hide_requested = Signal(object)           # список треков - «не нравится»
     hide_artist_requested = Signal(str)       # имя исполнителя
     artist_requested = Signal(str)            # открыть страницу исполнителя
-    playlist_requested = Signal(object, int)  # список треков, id плейлиста (0 — новый)
+    playlist_requested = Signal(object, int)  # список треков, id плейлиста (0 - новый)
     selection_mode_changed = Signal(bool)     # включён ли режим выбора
     selection_changed = Signal(int)           # сколько строк отмечено
 
@@ -293,7 +293,7 @@ class TrackListWidget(QListWidget):
         self.selection_changed.emit(len(self.selectedItems()))
 
     def _on_hold(self) -> None:
-        """Кнопку держали достаточно долго — включаем выбор с этой строки."""
+        """Кнопку держали достаточно долго - включаем выбор с этой строки."""
         if self._hold_row < 0:
             return
         row = self._hold_row
@@ -419,7 +419,7 @@ class TrackListWidget(QListWidget):
         return self._badges.get(track.uid) or self.vk_state(track)
 
     def request_cover(self, url: str) -> None:
-        """Делегат просит обложку для видимой строки — качаем один раз."""
+        """Делегат просит обложку для видимой строки - качаем один раз."""
         if url in self._cover_requests:
             return
         self._cover_requests.add(url)
@@ -430,7 +430,7 @@ class TrackListWidget(QListWidget):
 
     # ---------- действия ----------
     def _on_double_click(self, item: QListWidgetItem) -> None:
-        # В режиме выбора два щелчка — это отметить и снять отметку, а не запуск
+        # В режиме выбора два щелчка - это отметить и снять отметку, а не запуск
         if self._selection_mode:
             return
         row = self.row(item)
@@ -471,7 +471,7 @@ class TrackListWidget(QListWidget):
         return build_menu(self, selected, actions, store=self._store, rows=rows)
 
     def _play(self, selected, first_row: int) -> None:
-        """Один выделенный — играем весь список с этой строки, несколько — только их."""
+        """Один выделенный - играем весь список с этой строки, несколько - только их."""
         if len(selected) > 1:
             self.play_requested.emit(selected, 0)
         else:

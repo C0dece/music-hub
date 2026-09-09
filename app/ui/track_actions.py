@@ -1,4 +1,4 @@
-"""Действия над треком — одним списком для всех мест программы.
+"""Действия над треком - одним списком для всех мест программы.
 
 Раньше меню собиралось отдельно в списке треков, в панели плеера и в очереди, и
 списки разошлись: где-то не было «добавить в плейлист», где-то «скопировать
@@ -6,7 +6,7 @@
 передаёт только те обработчики, которые у неё осмысленны: пункт без обработчика
 в меню не попадает.
 
-Порядок пунктов постоянный — привыкнув к меню в одном разделе, пользователь
+Порядок пунктов постоянный - привыкнув к меню в одном разделе, пользователь
 находит тот же пункт на том же месте в любом другом."""
 from __future__ import annotations
 
@@ -92,7 +92,7 @@ def fill_menu(menu: QMenu, tracks, actions: TrackActions, *, store=None,
     if actions.download is not None and any(not t.cached for t in tracks):
         menu.addAction('Скачать', lambda: actions.download(tracks))
     if actions.offline is not None:
-        # Свой файл уже и так на диске — предлагать «сохранить офлайн» незачем
+        # Свой файл уже и так на диске - предлагать «сохранить офлайн» незачем
         targets = [t for t in tracks if t.source != SOURCE_LOCAL]
         if targets:
             uids = {t.uid for t in targets}
@@ -127,7 +127,7 @@ def _fill_playlists(menu: QMenu, tracks, actions: TrackActions, store) -> None:
         try:
             playlists = [p for p in store.playlists(include_system=False)
                          if (p.get('source') or 'hub') == 'hub']
-        except Exception:  # база могла быть закрыта — меню важнее
+        except Exception:  # база могла быть закрыта - меню важнее
             playlists = []
     for playlist in playlists:
         playlist_id = int(playlist['id'])

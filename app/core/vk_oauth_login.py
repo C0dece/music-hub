@@ -14,7 +14,7 @@ from .async_task import run_async
 
 logger = logging.getLogger(__name__)
 
-# Kate Mobile — официальное приложение VK; только официальные app_id всё ещё
+# Kate Mobile - официальное приложение VK; только официальные app_id всё ещё
 # получают scope=audio при OAuth-входе (у VK нет публичного API для музыки).
 KATE_MOBILE_CLIENT_ID = 2685278
 OAUTH_SCOPE = 'audio,offline,video'

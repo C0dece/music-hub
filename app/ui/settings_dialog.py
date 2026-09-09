@@ -25,7 +25,7 @@ PROXY_NOTE = (
     'Чтобы пользоваться своим прокси, впишите адрес с портом, а логин и пароль в поля '
     'ниже, если прокси их требует. Режим переключится сам, дальше приложение будет качать '
     'через этот прокси YouTube.\n\n'
-    'VK — исключение: к нему приложение всегда ходит напрямую, мимо прокси и VPN, и окно '
+    'VK - исключение: к нему приложение всегда ходит напрямую, мимо прокси и VPN, и окно '
     'входа тоже. Вход в аккаунт с зарубежного адреса VK принимает за угон и замораживает '
     'аккаунт до подтверждения по телефону, а в России VK и так открыт.\n\n'
     'Схему можно не писать: без неё адрес считается http. Для SOCKS укажите её явно: '
@@ -95,7 +95,7 @@ class SettingsDialog(QDialog):
         tabs.addTab(self._scrollable(self._build_music_tab()), 'Музыка')
         tabs.addTab(self._scrollable(self._build_app_tab()), 'Программа')
         tabs.addTab(self._scrollable(self._build_access_tab(vk_logged_in)), TAB_ACCOUNTS)
-        # Значок VK или YouTube в шапке — это и есть кнопка «разобраться со
+        # Значок VK или YouTube в шапке - это и есть кнопка «разобраться со
         # входом»: открываем сразу нужную вкладку, чтобы человек не искал её сам
         if start_tab:
             for i in range(tabs.count()):
@@ -180,7 +180,7 @@ class SettingsDialog(QDialog):
     # ---------- вкладка «Музыка» ----------
     def _build_music_tab(self) -> QWidget:
         """Только про саму музыку. Раньше эта вкладка звалась «Музыка и связь»
-        и держала заодно значок у часов, горячие клавиши и мост с браузером —
+        и держала заодно значок у часов, горячие клавиши и мост с браузером -
         найти там что-то по названию было невозможно."""
         page = QWidget()
         box = QVBoxLayout(page)
@@ -228,8 +228,8 @@ class SettingsDialog(QDialog):
         return card
 
     def _build_my_music_card(self) -> Card:
-        """Своя музыка и офлайн — одна карточка: это одна и та же фонотека,
-        просто с двух сторон — что в неё добавляют и что из неё держат на диске."""
+        """Своя музыка и офлайн - одна карточка: это одна и та же фонотека,
+        просто с двух сторон - что в неё добавляют и что из неё держат на диске."""
         card = Card()
         card.layout().addWidget(self._title('Моя музыка'))
 
@@ -244,7 +244,7 @@ class SettingsDialog(QDialog):
         self._offline_limit.setDecimals(1)
         self._offline_limit.setSingleStep(0.5)
         self._offline_limit.setSuffix('  ГБ')
-        # 0 — это «сколько влезет», и написать это словами понятнее, чем нулём
+        # 0 - это «сколько влезет», и написать это словами понятнее, чем нулём
         self._offline_limit.setSpecialValueText('без ограничения')
         self._offline_limit.setValue(float(self._settings.get('offline_limit_gb') or 0))
         form.addRow('Занимать не больше:', self._narrow(self._offline_limit, 190))
@@ -266,7 +266,7 @@ class SettingsDialog(QDialog):
         for path in self._settings.get('local_dirs') or []:
             self._local_dirs.addItem(str(path))
         card.layout().addWidget(self._local_dirs)
-        # Пустая рамка ничего не объясняет — вместо неё строка о том, что делать
+        # Пустая рамка ничего не объясняет - вместо неё строка о том, что делать
         self._local_dirs_empty = self._hint(
             'Пока ни одной папки. Добавьте свою, и её музыка появится в «Треках».')
         card.layout().addWidget(self._local_dirs_empty)
@@ -398,7 +398,7 @@ class SettingsDialog(QDialog):
         card.layout().addWidget(self._hotkeys_media)
 
         card.layout().addWidget(self._hint(
-            'Пишите сочетания как Ctrl+Alt+Space: буква или цифра, F1–F12, стрелки, '
+            'Пишите сочетания как Ctrl+Alt+Space: буква или цифра, F1-F12, стрелки, '
             'Space, Enter. Занятое другой программой сочетание просто не сработает, '
             'остальные при этом продолжат работать. Пустое поле выключает действие.'))
         self._hotkeys_enabled.toggled.connect(self._sync_hotkey_controls)
@@ -475,7 +475,7 @@ class SettingsDialog(QDialog):
         self._proxy_url = QLineEdit(self._settings.get('proxy_url', ''))
         self._proxy_url.setPlaceholderText('адрес:порт, например 45.12.34.56:8000 '
                                            'или socks5://127.0.0.1:1080')
-        # Начали печатать адрес — сразу включаем «Свой адрес»: иначе введённые данные
+        # Начали печатать адрес - сразу включаем «Свой адрес»: иначе введённые данные
         # молча не применяются, и это выглядит как «настройка не работает»
         self._proxy_url.textEdited.connect(self._switch_to_manual_proxy)
         addr_row.addWidget(self._proxy_url, 1)
@@ -745,7 +745,7 @@ class SettingsDialog(QDialog):
         self._settings['proxy_url'] = self._proxy_url.text().strip()
         self._settings['proxy_user'] = self._proxy_user.text().strip()
         # Пароль из буфера часто приезжает с пробелом или переводом строки на конце.
-        # Прокси такой не примет, а за звёздочками в поле этого не видно — отсюда 407
+        # Прокси такой не примет, а за звёздочками в поле этого не видно - отсюда 407
         # при «всё введено верно».
         self._settings['proxy_pass'] = self._proxy_pass.text().strip()
         self._settings['proxy_fragment'] = self._proxy_fragment.isChecked()

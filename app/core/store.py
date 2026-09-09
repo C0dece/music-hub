@@ -3,12 +3,12 @@
 
 Зачем база, а не ещё один JSON: связок и истории прослушивания со временем
 становится тысячи, и каждый раз переписывать весь файл целиком (как это делает
-`history.py`) уже дорого, а искать по нему — неудобно. Берём `sqlite3` из
+`history.py`) уже дорого, а искать по нему - неудобно. Берём `sqlite3` из
 стандартной библиотеки: отдельной зависимости не нужно, файл лежит рядом с
 остальными настройками.
 
 Скачанные файлы и история загрузок остаются там же, где были (`config/history.json`,
-папки «музыка»/«видео») — этот модуль их не трогает и не дублирует. Библиотеку VK
+папки «музыка»/«видео») - этот модуль их не трогает и не дублирует. Библиотеку VK
 целиком сюда тоже не копируем: в базе только то, чего у VK нет."""
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS tracks (
     norm_key       TEXT DEFAULT '',
     meta           TEXT DEFAULT '{}',
     added_at       REAL DEFAULT 0,
-    -- «Моя музыка»: когда трек добавлен в фонотеку (0 — просто попадался в выдаче).
+    -- «Моя музыка»: когда трек добавлен в фонотеку (0 - просто попадался в выдаче).
     -- Флагом, а не ещё одним системным плейлистом: порядок здесь не важен, зато
     -- важно уметь фильтровать и сортировать, а треки из обычных плейлистов должны
     -- считаться добавленными без второй записи о них.
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS tracks (
 );
 CREATE INDEX IF NOT EXISTS idx_tracks_norm ON tracks(norm_key);
 -- Индекс по saved_at создаёт _migrate, а не этот скрипт: в старой базе колонки
--- ещё нет, а CREATE TABLE IF NOT EXISTS её не добавит — скрипт упал бы на индексе.
+-- ещё нет, а CREATE TABLE IF NOT EXISTS её не добавит - скрипт упал бы на индексе.
 
 -- Связка «трек источника → аудиозапись VK». Главное, ради чего заведена база:
 -- второй раз тот же ролик в VK уже не поедет.
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS mappings (
     created_at     REAL DEFAULT 0
 );
 
--- Таблицы favorites больше нет: избранное — системный плейлист «Любимое»
+-- Таблицы favorites больше нет: избранное - системный плейлист «Любимое»
 -- (playlists.kind = 'system'). Старые базы переносит _migrate_favorites.
 
 -- История прослушивания. Записывается не по факту нажатия «играть», а когда трек
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS play_history (
     played_at REAL DEFAULT 0,
     source    TEXT DEFAULT '',
     listened  INTEGER DEFAULT 0,   -- сколько секунд реально слушали
-    finished  INTEGER DEFAULT 0    -- 1 — доиграл до конца, 0 — переключили
+    finished  INTEGER DEFAULT 0    -- 1 - доиграл до конца, 0 - переключили
 );
 CREATE INDEX IF NOT EXISTS idx_play_uid ON play_history(uid);
 CREATE INDEX IF NOT EXISTS idx_play_at ON play_history(played_at);
@@ -190,10 +190,10 @@ class Store:
         self.set_state('schema_version', str(SCHEMA_VERSION))
 
     def _migrate_favorites(self) -> None:
-        """Старое избранное (таблица favorites) — в системный плейлист «Любимое».
+        """Старое избранное (таблица favorites) - в системный плейлист «Любимое».
 
         Одно место вместо двух: сердечко больше не отдельная сущность, а строка
-        плейлиста, поэтому «в избранное» и «добавить в плейлист» — одна механика."""
+        плейлиста, поэтому «в избранное» и «добавить в плейлист» - одна механика."""
         if not self._query("SELECT name FROM sqlite_master WHERE type = 'table' "
                            "AND name = 'favorites'"):
             return
@@ -210,7 +210,7 @@ class Store:
             logger.warning('Store: не удалось убрать таблицу favorites: %s', exc)
 
     def _migrate_saved(self) -> None:
-        """Всё, что лежит в плейлистах, — уже «Моя музыка».
+        """Всё, что лежит в плейлистах, - уже «Моя музыка».
 
         Иначе после обновления раздел оказался бы пустым, хотя избранное и свои
         плейлисты никуда не делись."""
@@ -281,7 +281,7 @@ class Store:
 
         Одна и та же песня живёт и в VK, и на YouTube, и файлом на диске. Ключ
         нормализованного имени уже считается при сохранении, поэтому «чем ещё это
-        можно проиграть» — обычный запрос, а не отдельная таблица связок."""
+        можно проиграть» - обычный запрос, а не отдельная таблица связок."""
         key = normalized_key(track.artist, track.title)
         if not key:
             return []
@@ -314,7 +314,7 @@ class Store:
         return bool(self._query('SELECT 1 FROM mappings WHERE uid = ? LIMIT 1', (uid,)))
 
     def mapped_uids(self, uids) -> set[str]:
-        """Какие из переданных треков уже в VK — одним запросом, чтобы список
+        """Какие из переданных треков уже в VK - одним запросом, чтобы список
         результатов поиска не превращался в сотню обращений к базе."""
         uids = list(uids)
         if not uids:
@@ -337,7 +337,7 @@ class Store:
         return [_row_to_track(row) for row in rows]
 
     # ---------- «Моя музыка» ----------
-    # Фонотека — треки всех источников, отмеченные saved_at. Избранное и плейлисты
+    # Фонотека - треки всех источников, отмеченные saved_at. Избранное и плейлисты
     # лежат внутри неё: добавление в плейлист ставит отметку автоматически.
     def save_to_library(self, track: Track) -> None:
         self.save_track(track)
@@ -352,7 +352,7 @@ class Store:
 
     def remove_from_library(self, uid: str) -> None:
         """Убрать из фонотеки. Из плейлистов трек при этом не вычищаем: удалять
-        чужие списки по случайному нажатию нельзя — это делается там же, где они."""
+        чужие списки по случайному нажатию нельзя - это делается там же, где они."""
         self._exec('UPDATE tracks SET saved_at = 0 WHERE uid = ?', (uid,))
 
     def is_saved(self, uid: str) -> bool:
@@ -360,7 +360,7 @@ class Store:
                                 (uid,)))
 
     def saved_uids(self, uids) -> set[str]:
-        """Отметки сразу для списка — один запрос вместо запроса на строку."""
+        """Отметки сразу для списка - один запрос вместо запроса на строку."""
         uids = list(uids)
         if not uids:
             return set()
@@ -370,7 +370,7 @@ class Store:
         return {row['uid'] for row in rows}
 
     def saved_tracks(self, source: str = '', limit: int = 5000) -> list[Track]:
-        """Фонотека, новые сверху. `source` — 'vk' | 'youtube' | 'local' или всё."""
+        """Фонотека, новые сверху. `source` - 'vk' | 'youtube' | 'local' или всё."""
         sql = 'SELECT * FROM tracks WHERE saved_at > 0'
         params: list = []
         if source:
@@ -390,7 +390,7 @@ class Store:
 
     # ---------- офлайн-копии ----------
     def set_local_path(self, uid: str, path: str, cached: bool = False) -> None:
-        """Привязать файл к треку. `cached` — файл сделали мы (папка офлайна),
+        """Привязать файл к треку. `cached` - файл сделали мы (папка офлайна),
         значит его можно и удалить; чужие файлы приложение не трогает."""
         self._exec('UPDATE tracks SET local_path = ?, cached_at = ? WHERE uid = ?',
                    (path, time.time() if cached else 0.0, uid))
@@ -399,7 +399,7 @@ class Store:
         self._exec("UPDATE tracks SET local_path = '', cached_at = 0 WHERE uid = ?", (uid,))
 
     def cached_tracks(self) -> list[Track]:
-        """Офлайн-копии, самые давние сверху — в таком порядке их и вычищают."""
+        """Офлайн-копии, самые давние сверху - в таком порядке их и вычищают."""
         rows = self._query('SELECT * FROM tracks WHERE cached_at > 0 ORDER BY cached_at')
         return [_row_to_track(row) for row in rows]
 
@@ -413,7 +413,7 @@ class Store:
         return {row['uid'] for row in rows}
 
     # ---------- избранное ----------
-    # Избранное — системный плейлист «Любимое». Методы ниже оставлены фасадом:
+    # Избранное - системный плейлист «Любимое». Методы ниже оставлены фасадом:
     # вызывающему коду незачем знать, что под сердечком лежит обычный плейлист.
     def favorites_playlist_id(self, create: bool = True) -> int | None:
         rows = self._query("SELECT id FROM playlists WHERE kind = 'system' AND ext_id = ? "
@@ -440,7 +440,7 @@ class Store:
                                 'AND uid = ? LIMIT 1', (playlist_id, uid)))
 
     def favorites(self, limit: int = 500) -> list[Track]:
-        """Свежие сверху — в отличие от обычного плейлиста, где важен порядок."""
+        """Свежие сверху - в отличие от обычного плейлиста, где важен порядок."""
         playlist_id = self.favorites_playlist_id(create=False)
         if playlist_id is None:
             return []
@@ -462,7 +462,7 @@ class Store:
 
     # ---------- история прослушивания ----------
     def log_play(self, track: Track, listened: int = 0, finished: bool = False) -> None:
-        """Записать прослушивание. `listened` — сколько секунд реально играло."""
+        """Записать прослушивание. `listened` - сколько секунд реально играло."""
         self.save_track(track)
         self._exec('INSERT INTO play_history (uid, played_at, source, listened, finished) '
                    'VALUES (?, ?, ?, ?, ?)',
@@ -489,7 +489,7 @@ class Store:
         self._exec('DELETE FROM play_history')
 
     def played_uids(self, limit: int = 50) -> list[str]:
-        """Последние прослушанные uid — рекомендациям, чтобы не звать то же самое."""
+        """Последние прослушанные uid - рекомендациям, чтобы не звать то же самое."""
         rows = self._query('SELECT uid FROM play_history ORDER BY played_at DESC, '
                            'id DESC LIMIT ?', (limit,))
         return [row['uid'] for row in rows]
@@ -550,7 +550,7 @@ class Store:
 
     def recent_plays(self, limit: int = 30) -> list[Track]:
         # time.time() на Windows тикает раз в ~16 мс, поэтому у двух подряд идущих
-        # прослушиваний время совпадает — порядок доопределяем по номеру записи.
+        # прослушиваний время совпадает - порядок доопределяем по номеру записи.
         rows = self._query(
             'SELECT t.*, MAX(p.played_at) AS last_play, MAX(p.rowid) AS last_row '
             'FROM play_history p JOIN tracks t ON t.uid = p.uid GROUP BY t.uid '
@@ -570,7 +570,7 @@ class Store:
         return int(cur.lastrowid)
 
     def playlist_by_ext(self, source: str, ext_id: str) -> dict | None:
-        """Уже импортированный внешний плейлист — чтобы не создавать его дважды."""
+        """Уже импортированный внешний плейлист - чтобы не создавать его дважды."""
         rows = self._query('SELECT * FROM playlists WHERE source = ? AND ext_id = ?',
                            (source, ext_id))
         return dict(rows[0]) if rows else None
@@ -605,7 +605,7 @@ class Store:
         self._exec('DELETE FROM playlists WHERE id = ?', (playlist_id,))
 
     def add_to_playlist(self, playlist_id: int, track: Track) -> None:
-        # Трек в плейлисте — это трек «Моей музыки»: иначе список и плейлисты
+        # Трек в плейлисте - это трек «Моей музыки»: иначе список и плейлисты
         # разошлись бы, а человек добавлял вроде бы одно и то же
         self.save_to_library(track)
         rows = self._query('SELECT COALESCE(MAX(position), -1) + 1 AS pos '

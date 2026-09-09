@@ -7,7 +7,7 @@
 
 Ссылки на клип в ответе плеера нет, так что ищем его обычным поиском с фильтром
 «Видео». Поиск охотно подсовывает часовые сборники, каверы и чужие перезаливки
-того же трека — поэтому здесь проверяется в первую очередь отбор: что берётся
+того же трека - поэтому здесь проверяется в первую очередь отбор: что берётся
 только свой ролик, а на сомнительное приложение отвечает «клипа нет» и остаётся
 с обложкой.
 """
@@ -34,7 +34,7 @@ def song(video_id='atv0000000a', title='Numb', artist='Linkin Park', duration=18
 
 
 class FakeApi(InnerTube):
-    """Тот же клиент и тот же разбор ответа — подменён только поход в сеть."""
+    """Тот же клиент и тот же разбор ответа - подменён только поход в сеть."""
 
     def __init__(self, results):
         super().__init__()
@@ -57,7 +57,7 @@ class PickTests(unittest.TestCase):
                          'clip0000000')
 
     def test_ignores_a_greatest_hits_compilation(self):
-        """Часовой сборник — первое, что предлагает поиск по имени группы."""
+        """Часовой сборник - первое, что предлагает поиск по имени группы."""
         self.assertEqual(self.pick([found('mix00000000', 'Linkin Park Greatest Hits',
                                           'The Pulse Music', 4233)]), '')
 
@@ -78,7 +78,7 @@ class PickTests(unittest.TestCase):
             'ovid0000000')
 
     def test_skips_the_junk_and_keeps_looking(self):
-        """Свой ролик редко оказывается первым — до него нужно дойти."""
+        """Свой ролик редко оказывается первым - до него нужно дойти."""
         results = [found('mix00000000', 'Linkin Park Greatest Hits', 'The Pulse', 4233),
                    found('cover000000', 'Numb', 'Karaoke Band', 187),
                    found('clip0000000', 'Numb', 'Linkin Park', 188)]
@@ -94,7 +94,7 @@ class PickTests(unittest.TestCase):
 
 
 class CacheTests(unittest.TestCase):
-    """Discovery помнит ответ на весь сеанс — в том числе отрицательный."""
+    """Discovery помнит ответ на весь сеанс - в том числе отрицательный."""
 
     def setUp(self):
         self.disco = discovery.Discovery()
@@ -122,7 +122,7 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(len(self.asked), 1)
 
     def test_the_song_itself_is_not_a_clip(self):
-        """Поиск умеет вернуть ту же самую запись — подменять нечего."""
+        """Поиск умеет вернуть ту же самую запись - подменять нечего."""
         self.answer = 'atv0000000a'
         self.assertEqual(self.disco.music_video(song()), '')
 

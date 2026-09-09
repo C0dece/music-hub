@@ -35,7 +35,7 @@ class AsyncJob(QRunnable):
             result = self._fn(*self._args, **self._kwargs)
         except Exception as exc:
             # Ошибки, которые мы сами формулируем для пользователя (истёк вход, VK отказал),
-            # программу не ломают — трейсбек в логе для них лишний шум
+            # программу не ломают - трейсбек в логе для них лишний шум
             if getattr(exc, 'user_facing', False):
                 logger.warning('run_async: %s: %s', name, str(exc).splitlines()[0])
             else:
@@ -46,8 +46,8 @@ class AsyncJob(QRunnable):
             self._emit(result, None, name)
 
 
-# AsyncJob — не QObject, и ничего в Qt не держит на него ссылку, пока QThreadPool
-# им не завладеет. Ни один вызывающий код не сохраняет возвращённый job — значит,
+# AsyncJob - не QObject, и ничего в Qt не держит на него ссылку, пока QThreadPool
+# им не завладеет. Ни один вызывающий код не сохраняет возвращённый job - значит,
 # Python сборщик мусора удалял его (и его сигнал) сразу после return, зачастую
 # раньше, чем фоновый поток успевал сделать emit(). Отсюда "RuntimeError: Signal
 # source has been deleted" и полная тишина в UI при реально успешном результате.
@@ -66,7 +66,7 @@ def run_async(fn, on_done, *args, **kwargs) -> AsyncJob:
         try:
             on_done(result, error)
         except Exception:
-            # PySide6 по умолчанию тихо глотает исключения, брошенные внутри слота —
+            # PySide6 по умолчанию тихо глотает исключения, брошенные внутри слота -
             # без этого лога такие сбои выглядели бы как "ничего не произошло".
             logger.exception('run_async: обработчик on_done для %s упал с исключением', name)
 

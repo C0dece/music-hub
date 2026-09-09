@@ -46,7 +46,7 @@ class FakeVkClient:
 
     def __init__(self, mixes=None):
         self.added: list[tuple] = []
-        # None — «ключ не передавали»: по умолчанию у VK есть что предложить
+        # None - «ключ не передавали»: по умолчанию у VK есть что предложить
         self._mixes = [{'id': 7, 'owner_id': -2, 'title': 'Волна дня',
                         'subtitle': 'Собрано VK', 'cover': '', 'access_hash': ''}
                        ] if mixes is None else mixes
@@ -129,7 +129,7 @@ class UiSmokeTests(unittest.TestCase):
         widget.resize(MIN_WIDTH, 700)
         widget.show()
         self.app.processEvents()
-        # Окно должно сжиматься до 620 px — это и проверяем
+        # Окно должно сжиматься до 620 px - это и проверяем
         self.assertLessEqual(widget.minimumSizeHint().width(), MIN_WIDTH)
         widget.close()
         return widget
@@ -149,7 +149,7 @@ class UiSmokeTests(unittest.TestCase):
         bar.close()
 
     def test_mini_player_shows_current_track(self):
-        """Мини-плеер — второй вид на тот же плеер, а его крестик только сообщает."""
+        """Мини-плеер - второй вид на тот же плеер, а его крестик только сообщает."""
         from app.ui.mini_player import MiniPlayer
         self.player.queue.set_tracks([yt(title='Numb')])
         mini = self.show(MiniPlayer(self.player))
@@ -185,7 +185,7 @@ class UiSmokeTests(unittest.TestCase):
         self.app.processEvents()
         self.assertTrue(flyout.isVisible())
 
-        # Крестик — выход из программы, кнопка снизу — показать окно
+        # Крестик - выход из программы, кнопка снизу - показать окно
         quits: list = []
         opens: list = []
         flyout.quit_requested.connect(lambda: quits.append(True))
@@ -202,7 +202,7 @@ class UiSmokeTests(unittest.TestCase):
 
         Раньше кнопка гасла у всего, что пришло из VK, и добавить к себе трек
         из поиска или подборки было нечем. Свои записи отмечает окно подписью
-        через set_vk_state — оно одно спрашивает об этом сервис переноса."""
+        через set_vk_state - оно одно спрашивает об этом сервис переноса."""
         from app.core.track import Track
         from app.ui.tray_flyout import TrayFlyout
         flyout = TrayFlyout(self.player)
@@ -289,7 +289,7 @@ class UiSmokeTests(unittest.TestCase):
         page.close()
 
     def test_favorites_open_in_playlists(self):
-        """Избранное — плейлист «Любимое», и открывается оно в «Плейлистах»."""
+        """Избранное - плейлист «Любимое», и открывается оно в «Плейлистах»."""
         from app.ui.playlists_page import PlaylistsPage
         self.store.add_favorite(yt())
         page = self.show(PlaylistsPage(lambda: None, self.store))
@@ -422,7 +422,7 @@ class UiSmokeTests(unittest.TestCase):
         page.close()
 
     def test_local_preset_shows_only_own_files(self):
-        """«С компьютера» — та же страница, но чужие источники в неё не попадают."""
+        """«С компьютера» - та же страница, но чужие источники в неё не попадают."""
         from app.ui.tracks_page import PRESET_LOCAL, TracksPage
         path = os.path.join(tempfile.gettempdir(), 'своя.mp3')
         with open(path, 'wb') as fh:
@@ -460,13 +460,13 @@ class UiSmokeTests(unittest.TestCase):
         self.assertEqual({t.title for t in page.list.tracks()}, {'Numb', 'Faint'})
         self.assertIn('Офлайн-копий: 2', page._summary.text())
         self.assertIn('файлов нет: 1', page._summary.text())
-        # Запись есть, а играть нечего — об этом сказано меткой, а не молчанием
+        # Запись есть, а играть нечего - об этом сказано меткой, а не молчанием
         gone = [t for t in page.list.tracks() if t.title == 'Faint'][0]
         self.assertEqual(page.list.badge(gone), 'файла нет')
         page.close()
 
     def test_tracks_page_marks_missing_file(self):
-        """Файл унесли — трек остаётся в списке, но с честной меткой."""
+        """Файл унесли - трек остаётся в списке, но с честной меткой."""
         gone = os.path.join(tempfile.gettempdir(), 'нет такого файла.mp3')
         self.store.save_to_library(Track(source='local', source_id=os.path.normcase(gone),
                                          title='Numb', local_path=gone))
@@ -506,7 +506,7 @@ class UiSmokeTests(unittest.TestCase):
             panel._tab_bar.setCurrentIndex(TAB_WAVE)
             self.settle()
             self.assertEqual(client.wave_calls, 1)
-            # Второй заход на вкладку — без нового запроса к VK
+            # Второй заход на вкладку - без нового запроса к VK
             panel._tab_bar.setCurrentIndex(0)
             panel._tab_bar.setCurrentIndex(TAB_WAVE)
             self.settle()
@@ -515,7 +515,7 @@ class UiSmokeTests(unittest.TestCase):
             panel.close()
 
     def test_vk_wave_offers_a_choice_of_mixes_not_one_list(self):
-        """Смысл вкладки — выбор: каждая волна отдельной плиткой, треки после выбора."""
+        """Смысл вкладки - выбор: каждая волна отдельной плиткой, треки после выбора."""
         from app.ui.vk_panel import TAB_WAVE
         client = FakeVkClient(mixes=[
             {'id': 7, 'owner_id': -2, 'title': 'Волна дня', 'cover': '', 'access_hash': ''},
@@ -526,7 +526,7 @@ class UiSmokeTests(unittest.TestCase):
             panel._tab_bar.setCurrentIndex(TAB_WAVE)
             self.settle()
             self.assertEqual(len(panel._wave_mixes), 2, 'каталог из двух волн не собрался')
-            # До выбора треков нет: список волны — не главное на вкладке
+            # До выбора треков нет: список волны - не главное на вкладке
             self.assertEqual(panel._wave_list.tracks(), [])
             self.assertIn('Выберите волну', panel._counter.text())
 
@@ -540,7 +540,7 @@ class UiSmokeTests(unittest.TestCase):
             panel.close()
 
     def test_vk_wave_shows_many_shelves_and_opens_a_section_one(self):
-        """Подборок должно быть много и разного рода — ради этого вкладка и есть.
+        """Подборок должно быть много и разного рода - ради этого вкладка и есть.
 
         Полка-раздел («Рекомендации VK») координат плейлиста не имеет, и открыть
         её можно только повторным запросом за разделом. Панель об этом знать не
@@ -580,9 +580,9 @@ class UiSmokeTests(unittest.TestCase):
             panel.close()
 
     def test_empty_vk_wave_catalogue_says_so_instead_of_showing_search(self):
-        """Пустой каталог и рекомендаций нет — говорим это прямо, а не ищем подмену."""
+        """Пустой каталог и рекомендаций нет - говорим это прямо, а не ищем подмену."""
         from app.ui.vk_panel import TAB_WAVE
-        # У этого клиента нет даже recommended_tracks — запасному пути взяться неоткуда
+        # У этого клиента нет даже recommended_tracks - запасному пути взяться неоткуда
         panel = self._vk_panel_with_client(FakeVkClient(mixes=[]))
         try:
             panel._tab_bar.setCurrentIndex(TAB_WAVE)
@@ -594,7 +594,7 @@ class UiSmokeTests(unittest.TestCase):
             panel.close()
 
     def test_empty_wave_catalogue_falls_back_to_vk_recommendations(self):
-        """Плиток VK не дал, но рекомендации дал — показываем их, а не пустоту.
+        """Плиток VK не дал, но рекомендации дал - показываем их, а не пустоту.
 
         Это по-прежнему выдача самого VK, поэтому подменой поиска не является."""
         from app.ui.vk_panel import TAB_WAVE
@@ -607,7 +607,7 @@ class UiSmokeTests(unittest.TestCase):
         try:
             panel._tab_bar.setCurrentIndex(TAB_WAVE)
             self.settle()
-            # Полосе плиток взяться неоткуда — она только занимала бы место
+            # Полосе плиток взяться неоткуда - она только занимала бы место
             self.assertFalse(panel._wave_area.isVisibleTo(panel))
             self.assertEqual([t.title for t in panel._wave_tracks], ['Roads'])
             self.assertEqual(panel._wave_title.text(), 'Рекомендации VK')
@@ -623,7 +623,7 @@ class UiSmokeTests(unittest.TestCase):
             self.settle()
             marks = [panel._search_list.badge(track)
                      for track in panel._search_list.tracks()]
-            # Своя запись — по номеру, чужая копия той же песни — по названию
+            # Своя запись - по номеру, чужая копия той же песни - по названию
             self.assertEqual(marks, [MARK_MINE, MARK_MINE, MARK_ADDABLE])
         finally:
             panel.close()
@@ -697,7 +697,7 @@ class UiSmokeTests(unittest.TestCase):
         dialog.close()
 
     def test_settings_dialog_keeps_bridge_token(self):
-        """Ключ моста только показывается — окно не должно его терять или менять."""
+        """Ключ моста только показывается - окно не должно его терять или менять."""
         from app.ui.settings_dialog import SettingsDialog
         settings = {**config.DEFAULT_SETTINGS, 'bridge_token': 'секретный-ключ'}
         dialog = SettingsDialog(settings, vk_logged_in=True)

@@ -1,10 +1,10 @@
 """Очередь воспроизведения.
 
 Это не очередь загрузок: та живёт в `download_manager.py` и занимается файлами.
-Здесь — список того, что играть дальше, указатель на текущий трек и режим
+Здесь - список того, что играть дальше, указатель на текущий трек и режим
 перемешивания. Никакого Qt, чтобы очередь можно было проверить обычными тестами.
 
-Про перемешивание. Список в очереди — это и есть порядок проигрывания: человек
+Про перемешивание. Список в очереди - это и есть порядок проигрывания: человек
 видит в панели ровно то, что заиграет дальше. Поэтому при включении shuffle мы
 тасуем сами треки, а исходный порядок откладываем в `_original` и возвращаем при
 выключении. Тасуется только хвост после текущего трека: играющее не должно
@@ -23,7 +23,7 @@ class PlaybackQueue:
         self._tracks: list[Track] = []
         self._index: int = -1
         self._shuffle = False
-        # Логический порядок на время перемешивания. None — перемешивания нет.
+        # Логический порядок на время перемешивания. None - перемешивания нет.
         self._original: list[Track] | None = None
 
     # ---------- чтение ----------
@@ -89,7 +89,7 @@ class PlaybackQueue:
             self._index = -1
         else:
             self._index = max(0, min(start, len(self._tracks) - 1))
-        # Новая очередь — новый логический порядок: старый отложенный уже не про неё
+        # Новая очередь - новый логический порядок: старый отложенный уже не про неё
         self._original = list(self._tracks) if self._shuffle else None
         if self._shuffle:
             self._shuffle_tail()
@@ -111,7 +111,7 @@ class PlaybackQueue:
         at = self._index + 1 if self._index >= 0 else 0
         self._tracks[at:at] = added
         if self._original is not None:
-            # В логическом порядке «играть следующим» — тоже сразу за текущим
+            # В логическом порядке «играть следующим» - тоже сразу за текущим
             current = self.current()
             base = self._original_index(current.uid) + 1 if current is not None else 0
             self._original[base:base] = added
@@ -162,7 +162,7 @@ class PlaybackQueue:
         track = self._tracks.pop(source)
         self._tracks.insert(target, track)
         if self._original is not None:
-            # Человек переставил вручную — это его решение и для порядка без shuffle
+            # Человек переставил вручную - это его решение и для порядка без shuffle
             at = self._original_index(track.uid)
             if at >= 0:
                 self._original.pop(at)
@@ -222,7 +222,7 @@ class PlaybackQueue:
             return
         current = self.current()
         known = {t.uid for t in self._original}
-        # Всё, что добавили уже во время перемешивания, дописываем в конец —
+        # Всё, что добавили уже во время перемешивания, дописываем в конец -
         # иначе выключение shuffle молча выбрасывало бы эти треки из очереди
         restored = [t for t in self._original if any(x.uid == t.uid for x in self._tracks)]
         restored.extend(t for t in self._tracks if t.uid not in known)

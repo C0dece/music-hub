@@ -83,7 +83,7 @@ PAGE_NAMES = ['home', 'mix', 'youtube', 'vk', 'playlists', 'history',
               'downloads', 'library', 'tracks', 'local', 'video']
 
 # Четыре раздела вместо девяти пунктов подряд: сначала выбирают занятие, и
-# только внутри — источник. Избранного здесь нет: это плейлист «Любимое».
+# только внутри - источник. Избранного здесь нет: это плейлист «Любимое».
 NAV_SECTIONS = [
     ('Главная', (PAGE_HOME,)),
     ('Слушать', (PAGE_MIX, PAGE_YOUTUBE, PAGE_VK, PAGE_LOCAL)),
@@ -91,12 +91,12 @@ NAV_SECTIONS = [
     # Раздел показывал те же строки второй раз, а искать в нём приходилось
     # отдельно. Теперь это фильтр «Только офлайн» в «Треках»
     ('Моя музыка', (PAGE_TRACKS, PAGE_PLAYLISTS, PAGE_HISTORY)),
-    # «Библиотека» — про скачанные файлы, а не про фонотеку: её место рядом с
+    # «Библиотека» - про скачанные файлы, а не про фонотеку: её место рядом с
     # очередью загрузок, иначе «Моя музыка» показывала бы одно и то же дважды
     ('Загрузки', (PAGE_QUEUE, PAGE_LIBRARY)),
     # Видео живёт отдельным разделом и появляется в меню, только когда есть что
     # показывать. Раньше кадр стоял внутри чужих страниц: он налезал на их
-    # содержимое, а в широком окне делил строку со списками и очередью — три
+    # содержимое, а в широком окне делил строку со списками и очередью - три
     # колонки сразу, и ни одной удобной. Своя страница снимает вопрос
     ('Видео', (PAGE_VIDEO,)),
 ]
@@ -116,15 +116,15 @@ def section_of_page(page: int) -> int:
 QUEUE_PANEL_MIN_WIDTH = 1040
 # С этой ширины в разделе видео очередь встаёт рядом с кадром. Порог не в том,
 # где она физически влезает (780), а в том, где не портит кадр: на 820 очередь
-# срезала его с 604 до 266 px — ступенька заметнее пользы от списка. Ниже порога
+# срезала его с 604 до 266 px - ступенька заметнее пользы от списка. Ниже порога
 # кадр занимает страницу целиком, а очередь открывают из полосы плеера
 VIDEO_QUEUE_MIN_WIDTH = 1040
-# Узкий боковой список разделов — окно должно жить и на 620 px
+# Узкий боковой список разделов - окно должно жить и на 620 px
 NAV_WIDTH, NAV_WIDTH_NARROW = 190, 64
 NARROW_WIDTH = 820
-# Раздел «Видео» — последний в меню
+# Раздел «Видео» - последний в меню
 VIDEO_SECTION = len(NAV_SECTIONS) - 1
-# Ширина поля поиска — одна на все размеры окна: в узком окне группа с поиском
+# Ширина поля поиска - одна на все размеры окна: в узком окне группа с поиском
 # переезжает на свою строку целиком, и места ей там хватает
 SEARCH_WIDTH = 230
 
@@ -139,18 +139,18 @@ VK_RETRY_MAX = 300
 # Отдельная лестница пауз для тихого перезахода веб-сессии. Раньше она была общей с
 # обычным повтором входа, и это едва не стоило человеку аккаунта: окно дёргало keeper
 # каждые пять минут, сбрасывая ему счётчик неудач, а сторож сессии независимо ходил в
-# VK за треками каждые десять — около пятнадцати неудачных заходов в час, и VK
+# VK за треками каждые десять - около пятнадцати неудачных заходов в час, и VK
 # отвечал на это блокировкой. Теперь первая пауза не короче собственной паузы keeper'а,
 # а предельная равна его COOLDOWN: пока сессия не оживает, попыток остаётся не больше
-# двух в час, и обе — руками самого keeper'а, с его антиштормом
+# двух в час, и обе - руками самого keeper'а, с его антиштормом
 VK_SESSION_RETRY_FIRST = int(keeper_mod.MIN_INTERVAL)      # 300 с
 VK_SESSION_RETRY_MAX = int(keeper_mod.COOLDOWN)            # 1800 с
 
 # Как часто сторож молча проверяет, жива ли ещё веб-сессия VK. Раньше о смерти
-# сессии узнавали только из упавшего запроса — то есть в тот момент, когда человек
-# уже нажал и уже увидел сбой. Проверка — один лёгкий запрос в фоне, так что дело не
+# сессии узнавали только из упавшего запроса - то есть в тот момент, когда человек
+# уже нажал и уже увидел сбой. Проверка - один лёгкий запрос в фоне, так что дело не
 # в нагрузке, а в окне беззащитности: сессия, слетевшая сразу после проверки, будет
-# чиниться только к следующей. Десять минут — компромисс: за это время человек редко
+# чиниться только к следующей. Десять минут - компромисс: за это время человек редко
 # успевает дойти до VK, а часовой интервал такую дыру оставлял почти на весь день
 VK_SESSION_WATCH = 600
 
@@ -190,10 +190,10 @@ class MainWindow(QMainWindow):
         # Прежние 320 были заметно меньше настоящего требования раскладки, и это
         # не давало окну «просто быть поменьше»: разницу QBoxLayout разбирал,
         # сжимая детей ниже их собственных минимумов. Сильнее всего доставалось
-        # панели VK — вкладки схлопывались в полоску в 6 px, а строка поиска
+        # панели VK - вкладки схлопывались в полоску в 6 px, а строка поиска
         # налезала на них сверху. Занижать минимум ради маленького окна нельзя:
         # раскладка от этого не уменьшается, а ломается.
-        # Само требование раскладки перед этим опущено с 664 до 480 — обложка в
+        # Само требование раскладки перед этим опущено с 664 до 480 - обложка в
         # очереди и кадр 16:9 больше не диктуют минимум (queue_panel, video_stage)
         self.setMinimumSize(MIN_BAR_WIDTH + NAV_WIDTH_NARROW, 480)
 
@@ -221,7 +221,7 @@ class MainWindow(QMainWindow):
         self._vk_blocked_rechecked = False
         # Протухшую сессию сайта сперва пробуем вернуть молча: в профиле встроенного
         # браузера обычно ещё жив вход, и пароль спрашивать незачем. Это не дубль
-        # _vk_retry — тот про связь и токен, а этот про куки сайта
+        # _vk_retry - тот про связь и токен, а этот про куки сайта
         # id отдаём функцией, а не числом: аккаунт может смениться, и запомненный
         # при старте указывал бы на прежнего владельца
         self._vk_keeper = VkSessionKeeper(parent=self, user_id=self._vk_user_id)
@@ -237,7 +237,7 @@ class MainWindow(QMainWindow):
         self._vk_session_delay = 0
         # Сторож: пока человек занят своими делами, регулярно и молча проверяем, жива
         # ли сессия сайта, и чиним её заранее. Без него о смерти сессии узнавали только
-        # из упавшего запроса — то есть уже после того, как человек увидел сбой
+        # из упавшего запроса - то есть уже после того, как человек увидел сбой
         self._vk_session_watch = QTimer(self)
         self._vk_session_watch.setInterval(VK_SESSION_WATCH * 1000)
         self._vk_session_watch.timeout.connect(self._check_vk_session)
@@ -246,7 +246,7 @@ class MainWindow(QMainWindow):
         self._library_dirty = True
 
         # Заливка в музыку VK: общая очередь для библиотеки и для режима
-        # «скачал с YouTube — сразу в VK»
+        # «скачал с YouTube - сразу в VK»
         self._uploader = VkUploadQueue(self)
         self._uploader.changed.connect(self._refresh_upload_chip)
         self._uploader.progress.connect(self._on_upload_progress)
@@ -258,12 +258,12 @@ class MainWindow(QMainWindow):
         # Разбор списка ссылок: ходим по ним по одной, поэтому состояние живёт здесь
         self._batch: dict | None = None
 
-        # Музыкальный центр: база, плеер и перенос «+ VK» создаются до интерфейса —
+        # Музыкальный центр: база, плеер и перенос «+ VK» создаются до интерфейса -
         # главная страница и панель плеера получают их в конструкторе
         self._store = store_mod.store()
         self._manager = DownloadManager(settings_provider=lambda: self._settings)
         self._manager.set_concurrency(self._settings.get('concurrency', 3))
-        # Офлайн-копии «Моей музыки». Своего загрузчика у них нет — тот же
+        # Офлайн-копии «Моей музыки». Своего загрузчика у них нет - тот же
         # менеджер, только с другой папкой (см. core/offline.py)
         self._offline = OfflineCache(self._manager, self._store,
                                      lambda: self._settings, self)
@@ -274,12 +274,12 @@ class MainWindow(QMainWindow):
         self._player.apply_settings(self._settings)
         self._player.error.connect(self._on_player_error)
         # Рекомендации: лента YouTube Music, радио по треку и продолжение очереди.
-        # Куки берём те же, что и загрузчик, — отдельный вход не нужен
+        # Куки берём те же, что и загрузчик, - отдельный вход не нужен
         self._discovery = Discovery(lambda: self._settings.get('cookies_browser'))
         self._recommender = Recommender(self._discovery, self._store)
         self._player.set_recommender(self._autoplay_next)
         # Единая волна из VK, YouTube и своих файлов. Своего загрузчика у неё
-        # нет — она просит те же части, что и обычные разделы
+        # нет - она просит те же части, что и обычные разделы
         self._mixer = Mixer(self._store, self._recommender, lambda: self._vk_client,
                             self._local_media)
         # Пока играет микс, продолжать очередь должен тоже микс
@@ -301,8 +301,8 @@ class MainWindow(QMainWindow):
         self._search_dialog: GlobalSearchDialog | None = None
         # Страницы читают базу при показе, а не при каждом изменении
         # Здесь должна быть каждая страница, читающая базу при показе: забытая
-        # покажет при первом открытии пустую рамку без единого слова — ни списка,
-        # ни подсказки, — пока её случайно не пометит правка фонотеки
+        # покажет при первом открытии пустую рамку без единого слова - ни списка,
+        # ни подсказки, - пока её случайно не пометит правка фонотеки
         self._page_dirty = {PAGE_HOME: True, PAGE_TRACKS: True,
                             PAGE_LOCAL: True,
                             PAGE_PLAYLISTS: True, PAGE_HISTORY: True}
@@ -347,7 +347,7 @@ class MainWindow(QMainWindow):
     def _build_ui(self) -> None:
         # Каркас: слева меню во всю высоту, справа полоса заголовка над
         # содержимым, внизу плеер во всю ширину. Отступы задают внутренние
-        # части — так меню и очередь достают до края окна, а не висят в рамке.
+        # части - так меню и очередь достают до края окна, а не висят в рамке.
         central = QWidget()
         root = QVBoxLayout(central)
         root.setContentsMargins(0, 0, 0, 0)
@@ -375,7 +375,7 @@ class MainWindow(QMainWindow):
         work.setSpacing(0)
 
         # Середина окна: сверху видео, под ним разделы. Сцена видео одна на всё
-        # приложение — при переходе между разделами ролик не перезапускается
+        # приложение - при переходе между разделами ролик не перезапускается
         center = QWidget()
         center_box = QVBoxLayout(center)
         center_box.setContentsMargins(16, 14, 16, 12)
@@ -386,7 +386,7 @@ class MainWindow(QMainWindow):
         # запрос ещё и не уходит повторно, пока предыдущий в пути
         self._clip_tried: set[str] = set()
         self._video_stage.fullscreen_changed.connect(self._on_fullscreen_changed)
-        # «Свернуть» в шапке сцены — это просьба слушать дальше без картинки
+        # «Свернуть» в шапке сцены - это просьба слушать дальше без картинки
         self._video_stage.close_requested.connect(lambda: self._player.set_mode(MODE_AUDIO))
 
         # Порядок добавления страниц обязан совпадать с PAGE_* и PAGE_TITLES
@@ -412,7 +412,7 @@ class MainWindow(QMainWindow):
                                          self._recommender)
         for widget in self._youtube_page.lists:
             self._wire_track_list(widget)
-        # Плеер YouTube — это страница Chromium, и ей нужно место в окне
+        # Плеер YouTube - это страница Chromium, и ей нужно место в окне
         self._yt_backend = YouTubeWebBackend(self)
         self._player.add_backend(self._yt_backend)
         self._video_stage.set_widget(self._yt_backend.view)
@@ -452,7 +452,7 @@ class MainWindow(QMainWindow):
         self._tracks_page.local_dirs_changed.connect(self._on_local_dirs_changed)
         self._wire_track_list(self._tracks_page.list)
 
-        # «С компьютера» — та же страница в другом режиме: список берётся из
+        # «С компьютера» - та же страница в другом режиме: список берётся из
         # другой выборки базы, а поиск, меню строки и щелчок остаются общими
         self._local_page = TracksPage(self._store, lambda: self._settings,
                                       self._offline, preset=PRESET_LOCAL)
@@ -482,7 +482,7 @@ class MainWindow(QMainWindow):
         self._queue_panel.playlist_requested.connect(self._add_tracks_to_playlist)
         self._queue_panel.set_store(self._store)
         self._queue_panel.close_requested.connect(self._hide_queue_panel)
-        # Очередь опустела или наполнилась — панель появляется и исчезает сама
+        # Очередь опустела или наполнилась - панель появляется и исчезает сама
         self._player.queue_changed.connect(self._apply_responsive)
         # Куда вернуть панель очереди, когда уходят из раздела видео
         self._queue_home = work
@@ -522,7 +522,7 @@ class MainWindow(QMainWindow):
         self._update_queue_buttons()
         self._apply_responsive()
 
-        # Ctrl+K — поиск везде. Через QShortcut, а не глобальным перехватом:
+        # Ctrl+K - поиск везде. Через QShortcut, а не глобальным перехватом:
         # сочетание должно работать только пока окно активно
         QShortcut(QKeySequence('Ctrl+K'), self, activated=self._open_global_search)
 
@@ -595,14 +595,14 @@ class MainWindow(QMainWindow):
         row.add_stretch()
         box.addWidget(row, 1)
 
-        # Поиск и кружки состояния — одна неразрывная группа. Отдельным соседом
+        # Поиск и кружки состояния - одна неразрывная группа. Отдельным соседом
         # в QHBoxLayout она откусывала у полосы заголовка свои 302 px намертво, и
         # вкладкам разделов оставалось 336 из нужных 387: QTabBar лишнее не
         # сжимает и не переносит, он рисовал вкладки прежней ширины и обрезал
-        # последнюю по краю виджета — «С компьютера» превращалось в «С компьк».
+        # последнюю по краю виджета - «С компьютера» превращалось в «С компьк».
         # Здесь группа стоит в самой полосе, за растяжкой: в широком окне она
         # по-прежнему прижата к правому краю, а когда места не хватает, FlowRow
-        # переносит её на свою строку целиком — и вкладки получают всю ширину
+        # переносит её на свою строку целиком - и вкладки получают всю ширину
         tools = QWidget()
         tools.setObjectName('header')
         tools_row = QHBoxLayout(tools)
@@ -622,7 +622,7 @@ class MainWindow(QMainWindow):
         tools_row.addWidget(self._search)
 
         # Значки не только показывают состояние, но и чинят его: по VK
-        # открывается вход, по YouTube — настройки движка. Другого входа в
+        # открывается вход, по YouTube - настройки движка. Другого входа в
         # аккаунт из основного окна нет, и он всегда на виду
         self._vk_chip = StatusChip('vk', 'off')
         self._vk_chip.set_clickable(True)
@@ -637,7 +637,7 @@ class MainWindow(QMainWindow):
         self._upload_chip.hide()
         tools_row.addWidget(self._upload_chip)
         # Fixed: внутри группы поле ввода, и без этого FlowRow считал её
-        # растяжимой — отдавал ей весь остаток строки, а поиск отъезжал от края
+        # растяжимой - отдавал ей весь остаток строки, а поиск отъезжал от края
         tools.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         row.add(tools)
 
@@ -709,7 +709,7 @@ class MainWindow(QMainWindow):
         """Пересчитать полосу заголовка после смены надписей на вкладках.
 
         Набор вкладок и счётчики в них меняются на ходу, а переносимая строка
-        раскладывает элементы по их sizeHint — без явного пересчёта вкладки
+        раскладывает элементы по их sizeHint - без явного пересчёта вкладки
         оставались в старой, более узкой рамке и подписи резались многоточием."""
         self._section_tabs.updateGeometry()
         self._header_row.layout().invalidate()
@@ -760,9 +760,9 @@ class MainWindow(QMainWindow):
 
         Кадр 16:9 не может расти в ширину, не вырастая в высоту, поэтому в
         широком окне рядом с ним всё равно остаётся место. Занимает его
-        очередь — она к видео ближе всего по смыслу: видно, что играет и что
+        очередь - она к видео ближе всего по смыслу: видно, что играет и что
         дальше. Сама панель одна на всё приложение и переезжает сюда, пока
-        раздел открыт, — второй экземпляр слушал бы плеер второй раз."""
+        раздел открыт, - второй экземпляр слушал бы плеер второй раз."""
         page = QWidget()
         box = QHBoxLayout(page)
         box.setContentsMargins(0, 0, 0, 0)
@@ -786,7 +786,7 @@ class MainWindow(QMainWindow):
         box.addWidget(self._build_add_card())
         box.addWidget(self._build_queue_table(), 1)
         # Пустая таблица с одними заголовками столбцов не подсказывает ничего:
-        # вместо неё — та же заглушка, что и в остальных разделах
+        # вместо неё - та же заглушка, что и в остальных разделах
         self._queue_empty = EmptyState(
             'download', 'Загрузок пока нет',
             'Вставьте ссылку на видео или плейлист выше и нажмите «Добавить», '
@@ -801,9 +801,9 @@ class MainWindow(QMainWindow):
 
         add_row = FlowRow(spacing=8)
         self._url_edit = QLineEdit()
-        # Подсказка короткая, а подробности — в подсказке при наведении: полный
+        # Подсказка короткая, а подробности - в подсказке при наведении: полный
         # текст требовал 396 px, а полю в узком окне доставалось 164, и от него
-        # оставалось «Ссылка на видео или…» — то есть ровно та половина, которая
+        # оставалось «Ссылка на видео или…» - то есть ровно та половина, которая
         # ничего не уточняет. Минимум держит поле читаемым: когда места мало,
         # FlowRow переносит «Добавить» на свою строку, и это лучше, чем душить
         # главное поле страницы ради того, чтобы всё встало в одну линию
@@ -821,7 +821,7 @@ class MainWindow(QMainWindow):
         self._preview_btn.setEnabled(False)
         self._preview_btn.clicked.connect(self._on_preview_url)
         add_row.add(self._preview_btn)
-        # В строку ввода список не вставишь — QLineEdit склеивает переносы,
+        # В строку ввода список не вставишь - QLineEdit склеивает переносы,
         # поэтому для многих ссылок сразу есть отдельное окно
         self._bulk_btn = QPushButton('Списком')
         self._bulk_btn.setObjectName('secondary')
@@ -829,7 +829,7 @@ class MainWindow(QMainWindow):
         self._bulk_btn.clicked.connect(self._open_bulk_add)
         add_row.add(self._bulk_btn)
         self._add_btn = QPushButton('Добавить')
-        # Текст кнопки меняется на «Читаю ссылку…» — без запаса по ширине
+        # Текст кнопки меняется на «Читаю ссылку…» - без запаса по ширине
         # строка ввода дёргалась бы при каждом добавлении
         self._add_btn.setMinimumWidth(150)
         self._add_btn.clicked.connect(self._on_add_url)
@@ -847,7 +847,7 @@ class MainWindow(QMainWindow):
         opts_row.add(self._mode_combo)
 
         # Раньше лишние поля прятались через setVisible, и вся строка перестраивалась
-        # при смене режима. Стопка держит ширину по самой широкой странице —
+        # при смене режима. Стопка держит ширину по самой широкой странице -
         # соседние элементы остаются на месте.
         # PagesStack: обычная стопка держала бы высоту по самой высокой из
         # страниц вариантов, даже когда открыта другая
@@ -980,7 +980,7 @@ class MainWindow(QMainWindow):
 
     # ================= навигация и статусы =================
     def _on_section_changed(self, row: int) -> None:
-        """Выбрали раздел — показываем его вкладки и последнюю его страницу."""
+        """Выбрали раздел - показываем его вкладки и последнюю его страницу."""
         if not 0 <= row < len(NAV_SECTIONS):
             return
         pages = NAV_SECTIONS[row][1]
@@ -992,7 +992,7 @@ class MainWindow(QMainWindow):
             self._section_tabs.addTab(PAGE_TITLES[page])
         self._section_tabs.setCurrentIndex(pages.index(wanted))
         self._section_tabs.blockSignals(False)
-        # Единственная вкладка ничего не переключает — прячем её
+        # Единственная вкладка ничего не переключает - прячем её
         self._section_tabs.setVisible(len(pages) > 1)
         self._refresh_header()
         self._update_nav_counters()
@@ -1010,7 +1010,7 @@ class MainWindow(QMainWindow):
     def _show_page(self, index: int) -> None:
         section = section_of_page(index)
         self._last_page[section] = index
-        # В заголовке — название раздела, а не страницы: страницу и так видно
+        # В заголовке - название раздела, а не страницы: страницу и так видно
         # на выбранной вкладке рядом, а два одинаковых слова подряд лишние
         self._page_title.setText(NAV_SECTIONS[section][0])
         self._pages.setCurrentIndex(index)
@@ -1019,7 +1019,7 @@ class MainWindow(QMainWindow):
             self._library_dirty = False
             self._library_page.reload()
         elif index == PAGE_MIX:
-            # Источники могли появиться уже после запуска — например, вход в VK
+            # Источники могли появиться уже после запуска - например, вход в VK
             self._mix_page.refresh_sources()
         elif index == PAGE_YOUTUBE:
             # Лента сама решает, надо ли идти в сеть: у неё свой срок годности
@@ -1081,7 +1081,7 @@ class MainWindow(QMainWindow):
     def _update_nav_counters(self) -> None:
         """Числа у названий: сколько файлов в библиотеке и задач в работе.
 
-        В меню слева показываем счётчик только главной страницы раздела —
+        В меню слева показываем счётчик только главной страницы раздела -
         складывать числа разного смысла (задачи и файлы) нельзя, а без числа
         в меню идущие загрузки были бы не видны из других разделов. Остальные
         страницы показывают свои счётчики на вкладках."""
@@ -1090,7 +1090,7 @@ class MainWindow(QMainWindow):
             item = self._nav.item(row)
             if self._nav_narrow:
                 # В узком меню подписи не помещались и обрывались многоточием
-                # («Моя му…»). Остаются значок и число — понятно и не режется
+                # («Моя му…»). Остаются значок и число - понятно и не режется
                 item.setText(str(count) if count else '')
             else:
                 item.setText(f'{title}  ({count})' if count else title)
@@ -1132,7 +1132,7 @@ class MainWindow(QMainWindow):
 
     def _go_to(self, name: str) -> None:
         if name == 'favorites':
-            # Избранное — системный плейлист, своей страницы у него больше нет
+            # Избранное - системный плейлист, своей страницы у него больше нет
             self._select_page(PAGE_PLAYLISTS)
             self._playlists_page.show_favorites()
         elif name in PAGE_NAMES:
@@ -1146,7 +1146,7 @@ class MainWindow(QMainWindow):
         self._settings['queue_panel'] = self._queue_wanted
         self._apply_responsive()
         if self._queue_wanted and not self._queue_panel.isVisible():
-            # Окно слишком узкое — панель не влезет, и молчать об этом нечестно
+            # Окно слишком узкое - панель не влезет, и молчать об этом нечестно
             self._status_message('Очередь появится, когда окно станет шире')
 
     def _install_edge_filter(self) -> None:
@@ -1191,7 +1191,7 @@ class MainWindow(QMainWindow):
         Правило простое: сначала уступает очередь, потом сужается список
         разделов. Горизонтальной полосы прокрутки у окна быть не должно.
 
-        По высоте то же самое: в низком окне уходит подвал меню — «Настройки»
+        По высоте то же самое: в низком окне уходит подвал меню - «Настройки»
         есть и в полосе заголовка под «⋯», а строка под них отнимала у списка
         разделов целый пункт."""
         width = self.width()
@@ -1199,7 +1199,7 @@ class MainWindow(QMainWindow):
         # Пустая очередь панель не показывает: рамка с надписью «пусто» занимает
         # треть окна и ничего не сообщает. Появится сама, как только что-то заиграет.
         has_queue = bool(self._player.queue.tracks)
-        # В разделе видео очередь — часть страницы, а не боковая панель: кнопка
+        # В разделе видео очередь - часть страницы, а не боковая панель: кнопка
         # «скрыть очередь» её не касается. Но в узком окне она уступает кадру:
         # вдвоём им остаётся меньше 16:9, и кадр приходилось бы плющить
         self._queue_panel.setVisible(
@@ -1218,7 +1218,7 @@ class MainWindow(QMainWindow):
         self._nav.setFixedWidth(nav_width)
         self._sidebar.setFixedWidth(nav_width)
         # Поиск больше не ужимается: сужали его, чтобы группа с чипами не
-        # выдавливала вкладки разделов на вторую строку, — но выдавливала она
+        # выдавливала вкладки разделов на вторую строку, - но выдавливала она
         # их не шириной, а тем, что стояла отдельным соседом и забирала своё
         # место намертво. Теперь группа внутри самой полосы и переносится
         # целиком, когда не помещается, так что отнимать у поиска нечего:
@@ -1243,14 +1243,14 @@ class MainWindow(QMainWindow):
 
     @staticmethod
     def _typing() -> bool:
-        """Человек сейчас что-то печатает? Тогда пробел — это пробел."""
+        """Человек сейчас что-то печатает? Тогда пробел - это пробел."""
         widget = QApplication.focusWidget()
         return isinstance(widget, (QLineEdit, QTextEdit, QAbstractSpinBox, QComboBox))
 
     def keyPressEvent(self, event) -> None:
         key = event.key()
         if key == Qt.Key_Escape:
-            # Сначала полный экран, потом очередь — в обратном порядке Esc
+            # Сначала полный экран, потом очередь - в обратном порядке Esc
             # закрывал бы панель, оставляя видео на весь экран
             if self._video_stage.fullscreen:
                 self._video_stage.set_fullscreen(False)
@@ -1266,7 +1266,7 @@ class MainWindow(QMainWindow):
     # ---------- воспроизведение ----------
     def _play_tracks(self, tracks, index: int = 0) -> None:
         tracks = list(tracks or [])
-        # Включили что-то помимо микса — продолжать очередь миксом больше незачем
+        # Включили что-то помимо микса - продолжать очередь миксом больше незачем
         self._mix_follow = None
         if tracks:
             self._player.play_tracks(tracks, max(0, min(index, len(tracks) - 1)))
@@ -1282,7 +1282,7 @@ class MainWindow(QMainWindow):
         """Включить волну микса.
 
         Отличие от обычного списка одно: когда очередь подойдёт к концу,
-        продолжение собирает тот же микс, а не лента YouTube, — иначе
+        продолжение собирает тот же микс, а не лента YouTube, - иначе
         «бесконечно» через час превращается в один источник."""
         config = self._mix_page.config()
         self._play_tracks(tracks, index)
@@ -1292,7 +1292,7 @@ class MainWindow(QMainWindow):
     def _autoplay_next(self, seed, exclude, limit):
         """Чем плеер продолжает очередь, когда она кончилась.
 
-        Обычно это рекомендации YouTube, а во время микса — сам микс. Микс может
+        Обычно это рекомендации YouTube, а во время микса - сам микс. Микс может
         и не дать ничего (нет связи с VK), поэтому за ним остаётся привычный запас."""
         follow = self._mix_follow
         if follow is not None:
@@ -1305,13 +1305,13 @@ class MainWindow(QMainWindow):
         """Кнопка запуска с главной: сперва показать раздел, потом включить волну.
 
         Раздел открывается всегда, даже если микс не соберётся: человек нажал
-        «Волна VK» и должен оказаться в музыке VK — там ему и скажут, чего не
+        «Волна VK» и должен оказаться в музыке VK - там ему и скажут, чего не
         хватает. Сама волна собирается на странице микса: она умеет и показать
         настройки, и сообщить о неудаче, а дублировать это здесь незачем.
         """
         self._go_to(page)
         # Настройки уезжают на страницу микса: кнопка предзаполняет ручки, а не
-        # прячет их — дальше волну правят руками, как после настроения
+        # прячет их - дальше волну правят руками, как после настроения
         self._mix_page.start_config(MixConfig.from_dict(data))
 
     def _on_mix_config(self, data: dict) -> None:
@@ -1355,10 +1355,10 @@ class MainWindow(QMainWindow):
     def _video_wanted(self, track) -> bool:
         """Нужна ли сейчас картинка на пол-окна.
 
-        Ролик YouTube — это почти всегда музыка, и разворачивать его клип без
+        Ролик YouTube - это почти всегда музыка, и разворачивать его клип без
         спроса не за чем: раньше сцена в режиме «по источнику» висела над каждой
         страницей, чаще всего пустая. Само собой видео показываем только для
-        своих видеофайлов — там кроме картинки ничего и нет; для остального
+        своих видеофайлов - там кроме картинки ничего и нет; для остального
         нужен явный режим «с видео» (значок в полосе плеера)."""
         if track is None:
             return False
@@ -1372,9 +1372,9 @@ class MainWindow(QMainWindow):
     def _update_video(self, track=None) -> None:
         """Показывать картинку, только когда её есть чем наполнить.
 
-        Ролик YouTube рисует своя страница, скачанное видео — видеовыход общего
+        Ролик YouTube рисует своя страница, скачанное видео - видеовыход общего
         плеера; в остальное время это была бы пустая чёрная полоса на полстраницы.
-        Режим «только звук» прячет её и для видео — воспроизведение при этом не
+        Режим «только звук» прячет её и для видео - воспроизведение при этом не
         трогаем: страница плеера продолжает работать невидимой."""
         track = track if track is not None else self._player.current
         wanted = self._video_wanted(track)
@@ -1386,7 +1386,7 @@ class MainWindow(QMainWindow):
             self._video_stage.set_title(track.display_title)
             # Соотношение нового ролика ещё неизвестно: до первого кадра рамка
             # стоит 16:9, дальше её поправит videoSizeChanged. Страница YouTube
-            # размер не сообщает — там 16:9 остаётся навсегда
+            # размер не сообщает - там 16:9 остаётся навсегда
             self._video_stage.set_aspect(0, 0)
             if youtube:
                 self._want_clip(track)
@@ -1400,10 +1400,10 @@ class MainWindow(QMainWindow):
     def _want_clip(self, track) -> None:
         """Поискать настоящий клип для песни из YouTube Music.
 
-        В YouTube Music песня чаще всего лежит «art track» — роликом, где вместо
+        В YouTube Music песня чаще всего лежит «art track» - роликом, где вместо
         картинки одна обложка альбома. Для звука это неважно, а в видеорежиме
         смотреть нечего, поэтому здесь один фоновый запрос за клипом того же
-        трека, и если он нашёлся — страница переключается на него.
+        трека, и если он нашёлся - страница переключается на него.
 
         Ищем только отсюда, то есть только когда картинку правда показывают: в
         режиме «только звук» лишних походов в сеть не будет вовсе. Ответ, в том
@@ -1430,7 +1430,7 @@ class MainWindow(QMainWindow):
     def _sync_video_section(self, wanted: bool) -> None:
         """Показать или спрятать раздел «Видео» в меню.
 
-        Нечего показывать — нет и пункта: пустой раздел с чёрным
+        Нечего показывать - нет и пункта: пустой раздел с чёрным
         прямоугольником внутри только сбивает с толку. Если его прячут прямо
         во время просмотра, уводим на предыдущий раздел, иначе окно осталось
         бы на странице, которой в меню больше нет."""
@@ -1460,13 +1460,13 @@ class MainWindow(QMainWindow):
             lambda size: self._video_stage.set_aspect(size.width(), size.height()))
 
     def _on_video_state(self, state: str) -> None:
-        """Пока плеер ищет ссылку или поднимает страницу, показывать нечего —
+        """Пока плеер ищет ссылку или поднимает страницу, показывать нечего -
         вместо чёрного прямоугольника в сцене стоит подпись.
 
         Подпись ставим и когда сцена скрыта. Раньше здесь стоял ранний выход по
         isVisible(), и он давал ровно ту чёрную заслонку, от которой подпись
         должна была спасать: включаешь видеорежим, страница поднимается, пока
-        раздел «Видео» ещё не открыт, — «играю» приходит в скрытую сцену и
+        раздел «Видео» ещё не открыт, - «играю» приходит в скрытую сцену и
         пропадает. Открываешь раздел, а поверх картинки висит «Готовим видео…»
         во всю ширину кадра, и уйти ей больше не с чего: состояние плеера
         второй раз не меняется. Оставалась она и после выключения режима."""
@@ -1559,7 +1559,7 @@ class MainWindow(QMainWindow):
 
     def _dislike_playing(self, tracks) -> None:
         """«Не нравится» у играющего трека: кроме скрытия сразу переключаем
-        дальше. В списках так делать нельзя — там отмечают пачку чужих строк,
+        дальше. В списках так делать нельзя - там отмечают пачку чужих строк,
         а здесь речь ровно о том, что звучит в эту секунду."""
         self._hide_tracks(tracks)
         current = self._player.current
@@ -1598,8 +1598,8 @@ class MainWindow(QMainWindow):
     def _vk_label(self, track) -> str:
         """Что написать на кнопке «+ VK» для этого трека.
 
-        Пустая строка — кнопка работает. Свои записи VK и уже перенесённые
-        треки отмечены галочкой, идущий перенос — своей подписью."""
+        Пустая строка - кнопка работает. Свои записи VK и уже перенесённые
+        треки отмечены галочкой, идущий перенос - своей подписью."""
         label = self._vk_states.get(track.uid)
         if label:
             return label
@@ -1625,7 +1625,7 @@ class MainWindow(QMainWindow):
             logger.info('«+ VK» не получился для %s: %s', uid, message)
 
     def _on_import_ambiguous(self, uid: str, candidates) -> None:
-        """Похожих записей несколько — выбирает человек, а не приложение."""
+        """Похожих записей несколько - выбирает человек, а не приложение."""
         items = [f'{track.display_title}  ({score:.0%})' for track, score in candidates]
         items.append('Ничего не подходит: скачать и залить свой файл')
         choice, ok = QInputDialog.getItem(
@@ -1646,7 +1646,7 @@ class MainWindow(QMainWindow):
             else:
                 self._store.add_favorite(track)
                 added.append(track)
-        # «Любимое» человек слушает чаще всего — его и держим на диске. Копию при
+        # «Любимое» человек слушает чаще всего - его и держим на диске. Копию при
         # снятии сердечка не удаляем: место освободит лимит, когда понадобится
         if added and self._settings.get('offline_favorites'):
             self._offline.ensure(added)
@@ -1658,7 +1658,7 @@ class MainWindow(QMainWindow):
                 self._mini.set_favorite(self._store.is_favorite(current.uid))
             if self._tray is not None:
                 self._tray.set_favorite(self._store.is_favorite(current.uid))
-        # «Любимое» — обычный плейлист, и меняется он вместе с остальными
+        # «Любимое» - обычный плейлист, и меняется он вместе с остальными
         if self._pages.currentIndex() == PAGE_PLAYLISTS:
             self._playlists_page.refresh_current()
         else:
@@ -1692,7 +1692,7 @@ class MainWindow(QMainWindow):
             self._library_dirty = True
 
     def _toggle_library(self, tracks) -> None:
-        """«В мою музыку» — тот же список, что и на вкладке «Треки»."""
+        """«В мою музыку» - тот же список, что и на вкладке «Треки»."""
         tracks = [t for t in tracks or [] if t is not None]
         if not tracks:
             return
@@ -1719,7 +1719,7 @@ class MainWindow(QMainWindow):
             self._mark_tracks_dirty()
             self._status_message(f'Офлайн-копии убраны: {len(uids)}')
             return
-        # Офлайн — это про фонотеку: то, что сохраняют на диск, должно быть и в ней
+        # Офлайн - это про фонотеку: то, что сохраняют на диск, должно быть и в ней
         for track in tracks:
             self._store.save_to_library(track)
         started = self._offline.ensure(tracks)
@@ -1735,7 +1735,7 @@ class MainWindow(QMainWindow):
         """Пункт «Добавить в плейлист» из любого списка треков.
 
         Раньше свои подборки было нечем наполнить: создать можно, положить в них
-        трек — нельзя."""
+        трек - нельзя."""
         tracks = list(tracks or [])
         if not tracks:
             return
@@ -1757,7 +1757,7 @@ class MainWindow(QMainWindow):
         self._status_message(f'В «{playlist["title"]}»: {len(tracks)} трек(ов)')
 
     def _download_tracks(self, tracks) -> None:
-        """Обычное скачивание — тем же загрузчиком, что и на вкладке «Загрузки»."""
+        """Обычное скачивание - тем же загрузчиком, что и на вкладке «Загрузки»."""
         added = 0
         for track in tracks or []:
             if track.source == SOURCE_VK:
@@ -1796,7 +1796,7 @@ class MainWindow(QMainWindow):
         self._auto_upload_ids.discard(item_id)
         if success:
             self._mark_library_dirty()
-            # message при успехе — путь к готовому файлу
+            # message при успехе - путь к готовому файлу
             if wanted_in_vk and message:
                 self._uploader.add([message])
             # Файл лёг в папку с музыкой, и списки своих файлов о нём ещё не знают
@@ -1909,7 +1909,7 @@ class MainWindow(QMainWindow):
         if not urls:
             return
         self._sync_settings_from_controls()
-        # В поле может оказаться и несколько ссылок — например, вставленных через пробел
+        # В поле может оказаться и несколько ссылок - например, вставленных через пробел
         if len(urls) > 1:
             self._url_edit.clear()
             self._start_batch(urls)
@@ -2059,7 +2059,7 @@ class MainWindow(QMainWindow):
         return queued, len(entries) - queued
 
     def _history_key(self, source: str, entry: dict) -> str:
-        """Ключ истории с учётом режима: музыка и видео одного ролика — разные загрузки."""
+        """Ключ истории с учётом режима: музыка и видео одного ролика - разные загрузки."""
         return history.key_for(source, entry.get('id'), self._settings.get('mode', 'audio'))
 
     def _queue_entry(self, source: str, entry: dict) -> bool:
@@ -2071,7 +2071,7 @@ class MainWindow(QMainWindow):
             item = self._manager.add_youtube(entry['url'], title, key)
         else:
             item = self._manager.add_vk_video(entry['url'], title, key)
-        # Видео в музыку VK не положишь — только то, что качается как аудио
+        # Видео в музыку VK не положишь - только то, что качается как аудио
         if self._auto_vk_check.isChecked() and self._settings.get('mode') == 'audio':
             self._auto_upload_ids.add(item.id)
         return True
@@ -2124,7 +2124,7 @@ class MainWindow(QMainWindow):
     def _on_mode_changed(self) -> None:
         is_video = self._mode_combo.currentData() == 'video'
         self._opts_stack.setCurrentIndex(OPTS_VIDEO if is_video else OPTS_AUDIO)
-        # Видео в музыку VK не заливается — галочке в этом режиме делать нечего
+        # Видео в музыку VK не заливается - галочке в этом режиме делать нечего
         self._auto_vk_check.setVisible(not is_video)
         self._settings['mode'] = self._mode_combo.currentData()
 
@@ -2150,12 +2150,12 @@ class MainWindow(QMainWindow):
             self._settings = dlg.result_settings()
             config.save_settings(self._settings)
             self._manager.set_concurrency(self._settings.get('concurrency', 3))
-            # Браузер для кук могли сменить — предпросмотру нужны куки уже нового
+            # Браузер для кук могли сменить - предпросмотру нужны куки уже нового
             preload_preview_cookies(self._settings.get('cookies_browser'))
             proxy.apply(self._settings)
             # Открытые соединения обложек ведут через прежний прокси. Адрес
             # посредника при этом не меняется (порт держит Chromium), так что
-            # сама сессия расхождения не заметит — рвём её здесь
+            # сама сессия расхождения не заметит - рвём её здесь
             covers.reset_session()
             self._detect_proxy()
             self._apply_settings_to_controls()
@@ -2163,7 +2163,7 @@ class MainWindow(QMainWindow):
             if old_dirs != (self._settings.get('music_dir'), self._settings.get('video_dir')):
                 self._mark_library_dirty()
             if old_local != list(self._settings.get('local_dirs') or []):
-                # Папку со своей музыкой добавили в настройках — читаем её сразу,
+                # Папку со своей музыкой добавили в настройках - читаем её сразу,
                 # иначе список папок был бы, а треков из них не было
                 self._tracks_page.refresh_local_dirs()
             self._mark_tracks_dirty()
@@ -2188,11 +2188,11 @@ class MainWindow(QMainWindow):
 
     # ================= VK =================
     def _on_vk_chip_clicked(self) -> None:
-        """Нажатие на значок VK в шапке — единственный вход в аккаунт из окна.
+        """Нажатие на значок VK в шапке - единственный вход в аккаунт из окна.
 
-        Что делать, зависит от того, что значок показывает: связи нет — пробуем
+        Что делать, зависит от того, что значок показывает: связи нет - пробуем
         подключиться сохранённым входом, вход не выполнен или сессия сайта
-        потерялась — открываем окно входа, всё хорошо — показываем настройки
+        потерялась - открываем окно входа, всё хорошо - показываем настройки
         аккаунта, где живут «Сменить аккаунт» и «Выйти»."""
         if self._vk_offline:
             self._try_auto_vk_login()
@@ -2215,7 +2215,7 @@ class MainWindow(QMainWindow):
         # Два клиента на один аккаунт дерутся за общий файл кук: тот, кто сохранился
         # вторым, затирает чужую сессию, и VK начинает гонять запросы по кругу
         # login.php ↔ index.php. Пути к этому месту два (окно входа и настройки), плюс
-        # повторный сигнал от самого окна, поэтому сторожим здесь — в общей точке
+        # повторный сигнал от самого окна, поэтому сторожим здесь - в общей точке
         if self._vk_connecting:
             logger.debug('_connect_vk_client: подключение уже идёт, повтор пропущен')
             return
@@ -2232,7 +2232,7 @@ class MainWindow(QMainWindow):
                 self._uploader.set_client(None)
                 if isinstance(error, vk_client_mod.VkAccountBlocked):
                     # Ни стирать вход, ни заводить таймер: и то и другое обещало бы
-                    # починку, которой не будет. Токен цел — он пригодится, когда
+                    # починку, которой не будет. Токен цел - он пригодится, когда
                     # блокировку снимут, и заставлять входить заново незачем
                     self._vk_offline = False
                     self._cancel_vk_retry()
@@ -2254,7 +2254,7 @@ class MainWindow(QMainWindow):
                 self._refresh_auto_vk_check()
                 return
             self._cancel_vk_retry()
-            # Подключились — значит, VK пускает: прежняя отметка о блокировке устарела
+            # Подключились - значит, VK пускает: прежняя отметка о блокировке устарела
             config.clear_vk_blocked()
             self._vk_client = client
             self._vk_offline = False
@@ -2262,7 +2262,7 @@ class MainWindow(QMainWindow):
             self._manager.vk_client = client
             self._uploader.set_client(client)
             self._vk_panel.set_client(client)
-            # Вошли руками — прежние неудачи фонового перезахода больше ни о чём не
+            # Вошли руками - прежние неудачи фонового перезахода больше ни о чём не
             # говорят: и счётчик keeper'а, и назначенная им починка с её паузой
             self._vk_keeper.reset()
             self._vk_session_retry.stop()
@@ -2270,7 +2270,7 @@ class MainWindow(QMainWindow):
             # Сторожить есть кого: дальше сессию проверяем сами, не дожидаясь сбоя
             self._vk_session_watch.start()
             # И проверяем сразу же. Токен API и сессия сайта живут порознь: клиент
-            # поднимется на живом токене, даже если куки давно протухли, — и без этой
+            # поднимется на живом токене, даже если куки давно протухли, - и без этой
             # проверки человек узнал бы о мёртвой сессии сам, открыв вкладку VK.
             # Ровно тот случай, ради которого перезаход и затевался
             self._check_vk_session()
@@ -2317,14 +2317,14 @@ class MainWindow(QMainWindow):
         return None if self._vk_client is None else self._vk_client.user_id
 
     def _check_vk_session(self) -> None:
-        """Раз в час: жива ли ещё сессия сайта? Если нет — чиним, не дожидаясь человека.
+        """Раз в час: жива ли ещё сессия сайта? Если нет - чиним, не дожидаясь человека.
 
         Проверка сетевая, поэтому в фоне: окно не должно замирать ради неё. Пока
-        keeper и без нас занят перезаходом, лезть незачем — только помешаем."""
+        keeper и без нас занят перезаходом, лезть незачем - только помешаем."""
         if self._vk_client is None or self._vk_keeper.running:
             return
         if self._vk_session_retry.isActive():
-            # Починка уже назначена и ждёт своей паузы. Проверять сейчас — значит
+            # Починка уже назначена и ждёт своей паузы. Проверять сейчас - значит
             # добавить к её попыткам собственный запрос за треками: именно из такой
             # пары «сторож плюс перезаход» и складывался поток обращений, на который
             # VK ответил блокировкой. Ответ мы и так знаем: сессия мертва
@@ -2333,17 +2333,17 @@ class MainWindow(QMainWindow):
                   self._vk_client.user_id)
 
     def _on_vk_session_checked(self, alive, error) -> None:
-        """Ответ сторожа. Сессия мертва — начинаем перезаход молча, панель не трогаем.
+        """Ответ сторожа. Сессия мертва - начинаем перезаход молча, панель не трогаем.
 
         Панель здесь намеренно оставляем как есть: человек может смотреть совсем
-        другую вкладку, и «обновляю вход» поверх неё — то самое мельтешение, которого
+        другую вкладку, и «обновляю вход» поверх неё - то самое мельтешение, которого
         просили избежать. Если он всё-таки откроет VK во время починки, `set_client`
         покажет ожидание сам."""
         if isinstance(error, vk_client_mod.VkAccountBlocked):
             self._on_vk_account_blocked(str(error))
             return
         if error is not None:
-            # Нет сети — не повод считать сессию мёртвой: проверим в следующий раз
+            # Нет сети - не повод считать сессию мёртвой: проверим в следующий раз
             logger.debug('VK: сторож не смог проверить сессию (%s)', error)
             return
         if alive:
@@ -2355,20 +2355,20 @@ class MainWindow(QMainWindow):
     def _refresh_vk_session(self) -> None:
         """Раз в сутки заглянуть на VK встроенным браузером, пока сессия ещё жива.
 
-        До сих пор браузер открывался только на похоронах: сессия умерла — идём
+        До сих пор браузер открывался только на похоронах: сессия умерла - идём
         перезаходить. Но умирает она как раз потому, что между входами профилем никто
         не пользуется: приложение ходит на VK через `requests`, а куки сайта VK
         продлевает только сам сайт и только живому браузеру. Отсюда и повторяющееся
         «вход слетел» на аккаунте, куда никто не переставал заходить.
 
-        Заход делается ровно здесь — сразу после того, как сторож подтвердил живую
+        Заход делается ровно здесь - сразу после того, как сторож подтвердил живую
         сессию. Дороже он не стоит: одна страница раз в сутки против такой же
         страницы при каждой поломке, которых становится меньше. И неудача тут ничего
-        не значит — чинить нечего, keeper промолчит."""
+        не значит - чинить нечего, keeper промолчит."""
         if not config.vk_refresh_due():
             return
         if self._vk_keeper.refresh():
-            # Метку ставим по факту начала, а не успеха: смысл её — не дать заходам
+            # Метку ставим по факту начала, а не успеха: смысл её - не дать заходам
             # повторяться чаще раза в сутки. Если бы её ставил только успех, заход,
             # спотыкающийся о недоступный VK, повторялся бы каждые десять минут
             config.save_vk_refresh()
@@ -2376,17 +2376,17 @@ class MainWindow(QMainWindow):
 
     # ---------- тихий перезаход по веб-сессии ----------
     def _restore_vk_session(self) -> None:
-        """Сессия сайта VK истекла — пробуем вернуть её сами, не спрашивая пароль.
+        """Сессия сайта VK истекла - пробуем вернуть её сами, не спрашивая пароль.
 
         Панель показывает «обновляю вход» без кнопки: пока автоматика работает,
         нажимать нечего. Кнопку она покажет сама, когда мы скажем, что не вышло."""
         if self._vk_keeper.running:
             # Панель шлёт сигнал из каждого упавшего загрузчика (треки и плейлисты
             # грузятся параллельно), поэтому на один обрыв их приходит два. Заход уже
-            # идёт — второй сигнал не повод ни начинать новый, ни ставить лишний таймер
+            # идёт - второй сигнал не повод ни начинать новый, ни ставить лишний таймер
             return
         if not self._vk_keeper.try_restore():
-            # Попытку не начали — рано, занят профиль или исчерпаны подряд идущие
+            # Попытку не начали - рано, занят профиль или исчерпаны подряд идущие
             # неудачи. Всё это лечится ожиданием, поэтому заходим позже, а не сдаёмся:
             # keeper молчит до успеха или сброса, и без таймера человек остался бы
             # с «обновляю вход» навсегда
@@ -2395,13 +2395,13 @@ class MainWindow(QMainWindow):
     def _on_vk_session_restored(self) -> None:
         """Получилось молча. Дальше всё то же, что после обычного входа, кроме пароля.
 
-        Свежие куки keeper записал в файл, но живой клиент об этом не знает — у него в
+        Свежие куки keeper записал в файл, но живой клиент об этом не знает - у него в
         сессии лежат прежние. Поэтому сперва `reload_web_session`, и лишь потом панель:
         она смотрит на `has_web_session` и без перечитывания показала бы заглушку
         «вход выполнен не до конца» поверх только что восстановленного доступа."""
         logger.info('VK: веб-сессия восстановлена в фоне')
         if self._vk_client is None or not self._vk_client.reload_web_session():
-            # Файл записан, а сессии в нём нет — редкость, но обещать успех не за что
+            # Файл записан, а сессии в нём нет - редкость, но обещать успех не за что
             self._on_vk_session_lost('свежие куки не подошли клиенту')
             return
         self._vk_session_retry.stop()
@@ -2411,19 +2411,19 @@ class MainWindow(QMainWindow):
         self._on_vk_availability_changed()
 
     def _on_vk_session_lost(self, reason: str) -> None:
-        """Не получилось с первого раза — но сдаваться ещё рано.
+        """Не получилось с первого раза - но сдаваться ещё рано.
 
         Причины неудачи почти всегда временные: не было сети, VK ответил медленнее
         таймаута, профиль был занят окном входа. Поэтому пробуем снова по таймеру, а
-        человека тревожим только один раз — когда паузы дорастут до предельной и
+        человека тревожим только один раз - когда паузы дорастут до предельной и
         станет ясно, что само уже не починится. Окно входа не открываем никогда:
-        всплывающее поверх работы окно с паролем — это ровно то, чего просили избежать."""
+        всплывающее поверх работы окно с паролем - это ровно то, чего просили избежать."""
         logger.info('VK: тихо вернуть сессию не удалось (%s)', reason)
         delay = self._schedule_vk_session_retry()
         if delay < VK_SESSION_RETRY_MAX:
             return
         # Дошли до предельной паузы: автоматика продолжит пробовать, но обещать, что
-        # обойдётся без пароля, уже нечестно — показываем кнопку
+        # обойдётся без пароля, уже нечестно - показываем кнопку
         self._vk_panel.show_session_lost()
         self._notify('Не удалось обновить вход в VK, войдите заново на вкладке «Музыка VK»')
 
@@ -2432,19 +2432,19 @@ class MainWindow(QMainWindow):
 
         Всё остальное в этом файле построено на «причина временная, повторим позже», и
         для блокировки это ровно неверно: сколько ни заходи, VK не пустит, пока человек
-        не снимет блокировку на сайте. Поэтому гасим оба таймера и говорим прямо —
+        не снимет блокировку на сайте. Поэтому гасим оба таймера и говорим прямо -
         молчаливые попытки по кругу выглядели как «программа сломалась и ничего не
         делает», хотя она делала, просто бесполезное.
 
-        `remember=False` — когда мы не узнали о блокировке, а лишь прочитали свою же
+        `remember=False` - когда мы не узнали о блокировке, а лишь прочитали свою же
         отметку. Записывать в этом случае нечего, и разделение здесь не про лишний
         вызов: без него источником правды становилась запись, сделанная с её же слов."""
         logger.warning('VK: аккаунт заблокирован, автоматические попытки остановлены')
         if remember:
             # Запоминаем на диск: без этого знание жило до закрытия программы, и каждый
-            # следующий запуск начинал с нуля — полный залп запросов по аккаунту, который
+            # следующий запуск начинал с нуля - полный залп запросов по аккаунту, который
             # VK уже пометил. Ровно это и не давало блокировке сняться
-            # Клиента к этому моменту уже нет, поэтому чей это аккаунт — смотрим в
+            # Клиента к этому моменту уже нет, поэтому чей это аккаунт - смотрим в
             # сохранённом входе: пригодится, чтобы не спутать отметку с чужой
             token_data = config.load_vk_token() or {}
             config.save_vk_blocked(self._vk_user_id() or token_data.get('user_id'))
@@ -2455,14 +2455,14 @@ class MainWindow(QMainWindow):
         self._vk_panel.show_account_blocked(reason)
         self._vk_chip.update_chip('VK заблокировал аккаунт', 'warn',
                                   'Музыка недоступна, пока VK не снимет блокировку')
-        self._notify('VK заблокировал аккаунт — откройте vk.com в браузере')
+        self._notify('VK заблокировал аккаунт - откройте vk.com в браузере')
 
     def _retry_after_unblock(self) -> None:
-        """«Блокировка снята, повторить» — единственный путь обратно к VK.
+        """«Блокировка снята, повторить» - единственный путь обратно к VK.
 
         Отметку стираем до попытки: иначе `_try_auto_vk_login` увидел бы её и снова
         отказался идти. Если VK всё ещё не пускает, подключение упрётся в ту же
-        проверку и отметка вернётся на место — но уже ценой одного запроса, а не
+        проверку и отметка вернётся на место - но уже ценой одного запроса, а не
         целого залпа при каждом запуске."""
         logger.info('VK: человек сообщил о снятии блокировки, пробую подключиться')
         config.clear_vk_blocked()
@@ -2471,14 +2471,14 @@ class MainWindow(QMainWindow):
     def _retry_vk_session(self) -> None:
         """Очередная тихая попытка вернуть сессию сайта.
 
-        Счётчик неудач keeper'а здесь не сбрасывается — и это главное. Раньше сброс
+        Счётчик неудач keeper'а здесь не сбрасывается - и это главное. Раньше сброс
         стоял прямо перед попыткой «чтобы таймер не тикал вхолостую», и ценой оказался
         весь антишторм: keeper никогда не доходил ни до своих трёх неудач подряд, ни до
         получаса тишины, а окно приводило его к VK каждые пять минут. Считать, когда
-        пора остановиться, — работа keeper'а; наше дело лишь предлагать попытку, а
+        пора остановиться, - работа keeper'а; наше дело лишь предлагать попытку, а
         отказ принимать как ответ и приходить позже."""
         if not self._vk_keeper.try_restore():
-            # Отказ — норма: рано, занят профиль или keeper выдерживает паузу после
+            # Отказ - норма: рано, занят профиль или keeper выдерживает паузу после
             # серии неудач. Всё это лечится ожиданием, поэтому просто заходим позже
             self._schedule_vk_session_retry()
 
@@ -2496,22 +2496,22 @@ class MainWindow(QMainWindow):
         self._mix_page.refresh_sources()
 
     def _try_auto_vk_login(self, forced: bool = False) -> None:
-        """Подключение сохранённым токеном — при запуске, по кнопке «Повторить сейчас»
+        """Подключение сохранённым токеном - при запуске, по кнопке «Повторить сейчас»
         в панели VK и по таймеру после обрыва связи.
 
         `forced` ставит только кнопка «Повторить попытку»: это единственный случай,
-        когда в заблокированный аккаунт стучаться уместно — человек сам говорит, что
+        когда в заблокированный аккаунт стучаться уместно - человек сам говорит, что
         снял блокировку."""
         # Иначе ручное нажатие и сработавший таймер полезли бы в VK вдвоём
         self._vk_retry.stop()
         if not forced and config.load_vk_blocked() is not None:
             if not self._vk_blocked_rechecked:
                 # Первая попытка за запуск. Отсчёт суток здесь не помогал: программу
-                # закрывают на ночь, время идёт, а отметка не стареет ни на секунду —
+                # закрывают на ночь, время идёт, а отметка не стареет ни на секунду -
                 # у того, кто закрывает вечером и открывает утром, срок не выходил
                 # никогда, и живой аккаунт объявлялся заблокированным по памяти.
                 # Хуже того, отказ шёл через `_on_vk_account_blocked`, а тот заново
-                # звал `save_vk_blocked` — состояние подтверждало само себя, ни разу
+                # звал `save_vk_blocked` - состояние подтверждало само себя, ни разу
                 # не спросив VK. Спрашиваем. Один запрос на запуск потоком не выглядит
                 self._vk_blocked_rechecked = True
                 logger.info('VK: есть отметка о блокировке, проверяю её настоящим запросом')
@@ -2519,14 +2519,14 @@ class MainWindow(QMainWindow):
                 # Отметке больше суток. Блокировки VK почти всегда снимаются на сайте,
                 # и узнать об этом можно только попыткой: без неё программа молчала бы
                 # про «заблокирован» на аккаунте, который VK давно пустил обратно.
-                # Отметку не стираем — это сделает удавшееся подключение
-                # (`_on_vk_client_ready`); не вышло — она останется, и следующая
+                # Отметку не стираем - это сделает удавшееся подключение
+                # (`_on_vk_client_ready`); не вышло - она останется, и следующая
                 # проверка будет только через сутки
                 logger.info('VK: отметке о блокировке больше суток, пробую ещё раз')
             else:
                 # Про блокировку известно с прошлого раза. Молча не лезем: запросы по
                 # такому аккаунту ничего не вернут, а VK видит очередной поток обращений
-                # и держит блокировку дальше. Ждём человека — он снимет её на сайте и
+                # и держит блокировку дальше. Ждём человека - он снимет её на сайте и
                 # нажмёт «Повторить попытку»
                 logger.info('VK: аккаунт помечен заблокированным, автоподключение пропущено')
                 self._on_vk_account_blocked(vk_client_mod.BLOCKED_MESSAGE, remember=False)
@@ -2551,7 +2551,7 @@ class MainWindow(QMainWindow):
         self._vk_retry.stop()
         self._vk_retry_delay = 0
         # Тихий перезаход тоже отменяем: без токена возвращать сессию сайта незачем,
-        # а после выхода из аккаунта — просто вредно
+        # а после выхода из аккаунта - просто вредно
         self._vk_session_retry.stop()
         self._vk_session_delay = 0
 
@@ -2659,7 +2659,7 @@ class MainWindow(QMainWindow):
             self._open_link_in_app(url)
             return
         if url_detect.detect(url).source != 'youtube':
-            # Играть умеем то, что понимает музыкальный раздел; прочее — в загрузки
+            # Играть умеем то, что понимает музыкальный раздел; прочее - в загрузки
             self._show_window()
             self._open_link_in_app(url)
             self._status_message('Ссылку положил в «Загрузки»: играть её нечем')
@@ -2693,7 +2693,7 @@ class MainWindow(QMainWindow):
         self._url_edit.setFocus()
 
     def _notify(self, text: str) -> None:
-        """Сообщение человеку: в строке состояния, а при спрятанном окне — у часов."""
+        """Сообщение человеку: в строке состояния, а при спрятанном окне - у часов."""
         self._status_message(text)
         if self._tray is not None and not self.isVisible():
             self._tray.notify(text)
@@ -2760,7 +2760,7 @@ class MainWindow(QMainWindow):
         self.hide()
 
     def _close_mini_player(self) -> None:
-        """Вернуться в главное окно по кнопке — крестик тут ни при чём."""
+        """Вернуться в главное окно по кнопке - крестик тут ни при чём."""
         mini, self._mini = self._mini, None
         if mini is not None:
             mini.closed.disconnect()
@@ -2817,5 +2817,5 @@ class MainWindow(QMainWindow):
         store_mod.close()
         super().closeEvent(event)
         # Программа живёт, пока открыт мини-плеер или спрятано окно, поэтому
-        # закрытие последнего окна её не завершает — выходим отсюда явно
+        # закрытие последнего окна её не завершает - выходим отсюда явно
         QApplication.instance().quit()

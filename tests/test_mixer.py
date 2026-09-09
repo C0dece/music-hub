@@ -1,8 +1,8 @@
 """Единая волна: доли источников, чистка повторов и «на усмотрение программы».
 
-Сети здесь нет: вместо VK, YouTube и папок с файлами — заглушки с готовыми
+Сети здесь нет: вместо VK, YouTube и папок с файлами - заглушки с готовыми
 ответами. Проверяем то, что человек замечает сразу: соблюдены ли доли, не идут
-ли треки кучами по источникам, не звучит ли одна и та же песня дважды подряд —
+ли треки кучами по источникам, не звучит ли одна и та же песня дважды подряд -
 сначала из VK, потом с YouTube.
 """
 import time
@@ -41,7 +41,7 @@ class FakeVk:
             row(i, 'Deftones', f'Song {i}') for i in range(1, 41)]
         self.found = found if found is not None else [
             row(100 + i, 'Placebo', f'Found {i}') for i in range(1, 21)]
-        # По умолчанию своих рекомендаций у VK нет — так он отвечает чаще всего
+        # По умолчанию своих рекомендаций у VK нет - так он отвечает чаще всего
         self.recoms = list(recoms or [])
         self.queries: list[str] = []
 
@@ -117,7 +117,7 @@ def files(count=20):
 
 class MixConfigTests(unittest.TestCase):
     def test_broken_file_falls_back_to_defaults(self):
-        """Настройки читаются из settings.json — там может лежать что угодно."""
+        """Настройки читаются из settings.json - там может лежать что угодно."""
         config = MixConfig.from_dict({'weights': 'сломано', 'mode': 'нет такого',
                                       'limit': 'много'})
         self.assertEqual(config.mode, MODE_MIXED)
@@ -186,7 +186,7 @@ class MixerTests(unittest.TestCase):
         self.assertIn('Музыка VK 10', result.summary)
 
     def test_single_source_stays_single(self):
-        """«Только YouTube» — значит только YouTube, без добавок из VK."""
+        """«Только YouTube» - значит только YouTube, без добавок из VK."""
         mixer, _vk, _rec = self.build()
         result = mixer.build(MixConfig(weights={SOURCE_VK: 0, SOURCE_YOUTUBE: 100,
                                                 SOURCE_LOCAL: 0}, limit=15))
@@ -201,7 +201,7 @@ class MixerTests(unittest.TestCase):
         self.assertEqual(sum(result.counts.values()), 20)
 
     def test_known_mode_does_not_ask_for_the_feed(self):
-        """«Знакомое» — это фонотека и история, лента YouTube здесь ни при чём."""
+        """«Знакомое» - это фонотека и история, лента YouTube здесь ни при чём."""
         mixer, vk, _rec = self.build()
         mixer.build(MixConfig(weights={SOURCE_VK: 100, SOURCE_YOUTUBE: 0,
                                        SOURCE_LOCAL: 0}, mode=MODE_KNOWN, limit=20))
@@ -275,7 +275,7 @@ class MixerTests(unittest.TestCase):
         self.assertEqual(result.tracks, [])
 
     def test_missing_source_is_named_honestly(self):
-        """Молча подменять один источник другим нельзя — об этом должно быть сказано."""
+        """Молча подменять один источник другим нельзя - об этом должно быть сказано."""
         mixer = Mixer(FakeStore(), FakeRecommender(), lambda: None, None)
         result = mixer.build(MixConfig(weights={SOURCE_VK: 50, SOURCE_YOUTUBE: 50,
                                                 SOURCE_LOCAL: 0}, limit=20))
@@ -307,7 +307,7 @@ class MixerTests(unittest.TestCase):
         self.assertTrue(any('VK не ответил' in note for note in result.notes))
 
     def test_library_is_asked_once_for_repeated_builds(self):
-        """Пересобрать микс — обычное дело, а фонотека за минуту не меняется."""
+        """Пересобрать микс - обычное дело, а фонотека за минуту не меняется."""
         calls = []
 
         class Counting(FakeVk):
@@ -354,9 +354,9 @@ class MixerTests(unittest.TestCase):
         self.assertEqual({t.meta.get(PROVENANCE) for t in tracks}, {KIND_VK_RECOMS})
 
     def test_search_instead_of_recommendations_is_labelled_and_said_aloud(self):
-        """Своих рекомендаций нет — подмену поиском видно и в метке, и в примечании.
+        """Своих рекомендаций нет - подмену поиском видно и в метке, и в примечании.
 
-        Это и есть главное требование: поиск, выданный за рекомендации, — обман.
+        Это и есть главное требование: поиск, выданный за рекомендации, - обман.
         """
         mixer, vk, _rec = self.build(vk=FakeVk(recoms=[]))
         config = MixConfig(weights={SOURCE_VK: 100, SOURCE_YOUTUBE: 0,
@@ -379,7 +379,7 @@ class MixerTests(unittest.TestCase):
         self.assertEqual({t.meta.get(PROVENANCE) for t in tracks}, {KIND_FALLBACK})
 
     def test_broken_recommendations_do_not_break_the_mix(self):
-        """VK ответил ошибкой — микс всё равно собирается, но уже поиском."""
+        """VK ответил ошибкой - микс всё равно собирается, но уже поиском."""
         class Angry(FakeVk):
             def recommended_tracks(self, limit=60):
                 raise RuntimeError('VK молчит')
@@ -438,12 +438,12 @@ class MixPageTests(unittest.TestCase):
         застрявший сетевой тест по соседству съедал наше ожидание целиком. Шагаем
         мелко и выходим сразу, как только пришёл нужный ответ."""
         if until is None:
-            # Ждать нечего конкретного — как раньше: пул опустел, значит всё сделано
+            # Ждать нечего конкретного - как раньше: пул опустел, значит всё сделано
             for _round in range(rounds):
                 QThreadPool.globalInstance().waitForDone(2000)
                 self.app.processEvents()
             return
-        # Есть чёткий признак готовности — ждём именно его. Запас щедрый нарочно:
+        # Есть чёткий признак готовности - ждём именно его. Запас щедрый нарочно:
         # при успехе выходим сразу, поэтому длинный предел ничего не замедляет,
         # зато переживает занятый чужими задачами пул
         deadline = time.monotonic() + rounds * 10.0
@@ -467,7 +467,7 @@ class MixPageTests(unittest.TestCase):
         self.assertIn('треков', page._status.text())
 
     def test_unavailable_source_is_switched_off(self):
-        """Вход в VK не выполнен — доля VK не должна оставаться включённой."""
+        """Вход в VK не выполнен - доля VK не должна оставаться включённой."""
         mixer = Mixer(FakeStore(), FakeRecommender(), lambda: None, None)
         page = self.page(mixer)
         page.refresh_sources()
@@ -485,7 +485,7 @@ class MixPageTests(unittest.TestCase):
                          [SOURCE_VK, SOURCE_YOUTUBE, SOURCE_LOCAL])
 
     def test_mood_tile_fills_the_settings_and_plays(self):
-        """Плитка настроения — не отдельная ветка, а те же ручки и тот же запуск."""
+        """Плитка настроения - не отдельная ветка, а те же ручки и тот же запуск."""
         from app.core import moods
         page = self.page()
         played = []

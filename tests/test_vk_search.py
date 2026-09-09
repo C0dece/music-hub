@@ -153,7 +153,7 @@ def album(list_id, title, artists=(), genres=(), year=0, count=10):
 
 
 class ShelfTests(unittest.TestCase):
-    """Полки «Волны»: их много, и каждая — из разметки самого VK.
+    """Полки «Волны»: их много, и каждая - из разметки самого VK.
 
     Одной подборки человеку мало, но и выдумывать оси нельзя: полка существует
     ровно тогда, когда VK сам проставил жанр, год или исполнителя."""
@@ -164,8 +164,8 @@ class ShelfTests(unittest.TestCase):
 
     def test_genre_year_and_artist_each_make_a_shelf(self):
         """Один альбом законно попадает на разные полки: человек ищет то по
-        жанру, то по году, то по исполнителю — оси независимы."""
-        # Годы внутри группы исполнителя разные — иначе «ST1M» и «Свежее» сошлись
+        жанру, то по году, то по исполнителю - оси независимы."""
+        # Годы внутри группы исполнителя разные - иначе «ST1M» и «Свежее» сошлись
         # бы состав в состав и одна из полок ушла бы как точный дубликат
         rows = [album(i, f'A{i}', artists=['ST1M'], genres=['Рэп'], year=2024)
                 for i in range(2)]
@@ -179,7 +179,7 @@ class ShelfTests(unittest.TestCase):
         self.assertIn('ST1M', titles)         # исполнитель
 
     def test_a_lone_album_is_not_a_shelf(self):
-        """Полка из одного альбома — тот же альбом, только на два клика дальше."""
+        """Полка из одного альбома - тот же альбом, только на два клика дальше."""
         rows = [album(1, 'A1', genres=['Джаз']),
                 *[album(i, f'B{i}', genres=['Рэп']) for i in range(2, 6)]]
         titles = [s['title'] for s in self.shelves(*rows)]
@@ -187,21 +187,21 @@ class ShelfTests(unittest.TestCase):
         self.assertNotIn('Джаз', titles)
 
     def test_unlabelled_albums_make_no_shelves(self):
-        """Разметки нет — полок нет. Придумать настроение самим значит выдать
+        """Разметки нет - полок нет. Придумать настроение самим значит выдать
         свою догадку за мнение VK, а это та же подмена, что поиск вместо
         рекомендаций (AGENTS.md)."""
         rows = [album(i, f'A{i}') for i in range(6)]
         self.assertEqual(self.shelves(*rows), [])
 
     def test_shelves_with_the_same_albums_are_shown_once(self):
-        """Совпал состав до последнего альбома — полки отличаются только подписью."""
+        """Совпал состав до последнего альбома - полки отличаются только подписью."""
         rows = [album(i, f'A{i}', artists=['ST1M'], genres=['Рэп'])
                 for i in range(3)]
         titles = [s['title'] for s in self.shelves(*rows)]
         self.assertEqual(titles, ['Рэп'])
 
     def test_a_narrow_shelf_survives_inside_a_wide_one(self):
-        """Узкая полка внутри широкой — норма, ради которой всё и затевалось.
+        """Узкая полка внутри широкой - норма, ради которой всё и затевалось.
 
         «ST1M» целиком лежит в «Рэпе», но прятать его значит оставить человека
         с одной общей полкой вместо выбора."""
@@ -213,10 +213,10 @@ class ShelfTests(unittest.TestCase):
         self.assertIn('ST1M', titles)
 
     def test_partly_overlapping_shelves_both_stay(self):
-        """Частичное пересечение — не повод прятать: оси-то разные.
+        """Частичное пересечение - не повод прятать: оси-то разные.
 
         Ни одна из полок не лежит в другой целиком: у «Рэпа» есть чужой альбом,
-        у «ST1M» — альбом без жанра."""
+        у «ST1M» - альбом без жанра."""
         rows = [album(i, f'A{i}', artists=['ST1M'], genres=['Рэп'])
                 for i in range(3)]
         rows += [album(3, 'C', artists=['ST1M'])]      # у этого жанра нет
@@ -234,7 +234,7 @@ class ShelfTests(unittest.TestCase):
 
 
 class ShelfTrackTests(unittest.TestCase):
-    """Открыть полку — не зная и не выясняя, какого она рода."""
+    """Открыть полку - не зная и не выясняя, какого она рода."""
 
     def client(self, by_section=None):
         client = SectionClient(by_section or {})
@@ -249,7 +249,7 @@ class ShelfTrackTests(unittest.TestCase):
         return client
 
     def test_section_shelf_asks_the_section_again(self):
-        """У раздела нет координат плейлиста — открыть его можно только запросом."""
+        """У раздела нет координат плейлиста - открыть его можно только запросом."""
         client = self.client({'recent': payload_with(row(1, 10, 'Last', 'A'))})
         found = client.shelf_tracks({'_section': 'recent', '_items': None})
         self.assertEqual([t['title'] for t in found], ['Last'])

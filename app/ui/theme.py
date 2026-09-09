@@ -3,10 +3,10 @@
 Таблица стилей и рисование вручную (полоса прогресса, заготовки строк, значки)
 раньше знали цвета порознь: правка палитры в styles.qss оставляла делегаты
 прежними, и в окне соседствовали два синих. Теперь цвет объявлен здесь, а
-styles.qss берёт его подстановкой `@имя` — расходиться нечему.
+styles.qss берёт его подстановкой `@имя` - расходиться нечему.
 
 Палитра тёмная: почти чёрный фон, три уровня поверхностей и живой акцент
-(синий VK, переходящий в фуксию). Градиент — только на главном действии и на
+(синий VK, переходящий в фуксию). Градиент - только на главном действии и на
 проигранной части полос: если им красить всё подряд, взгляду не за что
 зацепиться."""
 from __future__ import annotations
@@ -51,7 +51,7 @@ GRADIENT = ('qlineargradient(x1:0, y1:0, x2:1, y2:1, '
             f"stop:0 {COLORS['accent']}, stop:1 {COLORS['accent_2']})")
 GRADIENT_HI = ('qlineargradient(x1:0, y1:0, x2:1, y2:1, '
                f"stop:0 {COLORS['accent_hi']}, stop:1 #ec6fab)")
-# Горизонтальный — для полос прогресса и перемотки
+# Горизонтальный - для полос прогресса и перемотки
 GRADIENT_BAR = ('qlineargradient(x1:0, y1:0, x2:1, y2:0, '
                 f"stop:0 {COLORS['accent']}, stop:1 {COLORS['accent_2']})")
 
@@ -70,7 +70,7 @@ _TOKEN = re.compile(r'@([a-z_0-9]+)')
 
 
 def color(name: str) -> str:
-    """Цвет по имени. Незнакомое имя — заметная фуксия, а не тихий сбой."""
+    """Цвет по имени. Незнакомое имя - заметная фуксия, а не тихий сбой."""
     return COLORS.get(name, '#ff00ff')
 
 
@@ -87,7 +87,7 @@ _QSS_ICONS = {
 
 def icon_url(name: str, color_name: str, size: int) -> str:
     """Путь к значку для QSS. Пустая строка, если нарисовать не вышло."""
-    from . import player_icons  # цвета берутся отсюда — импорт только по месту
+    from . import player_icons  # цвета берутся отсюда - импорт только по месту
     try:
         _ICON_DIR.mkdir(parents=True, exist_ok=True)
         value = color(color_name)
@@ -96,7 +96,7 @@ def icon_url(name: str, color_name: str, size: int) -> str:
             player_icons.draw(name, value, size).pixmap(size, size).save(str(path))
         return path.as_posix()
     except Exception:
-        # Без картинки поле останется без стрелки — это терпимо, падать незачем
+        # Без картинки поле останется без стрелки - это терпимо, падать незачем
         return ''
 
 

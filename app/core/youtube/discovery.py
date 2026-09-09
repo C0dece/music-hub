@@ -1,14 +1,14 @@
-"""Рекомендации, радио и подборки YouTube — в понятном приложению виде.
+"""Рекомендации, радио и подборки YouTube - в понятном приложению виде.
 
 Слой над `innertube`: тот отдаёт словари из чужого JSON, здесь получаются
 обычные `Track` и подборки с заголовками. Здесь же живут две важные вещи.
 
-Первая — честность. Если внутренний API недоступен (нет кук, YouTube поменял
+Первая - честность. Если внутренний API недоступен (нет кук, YouTube поменял
 ответ, нет сети), подборки не выдумываются: вместо них подставляется обычный
 поиск, и такая подборка прямо помечена как запасная (`kind = 'fallback'`).
-Выдавать поиск за рекомендации нельзя — человек должен понимать, что видит.
+Выдавать поиск за рекомендации нельзя - человек должен понимать, что видит.
 
-Вторая — кэш. Ответы держатся считанные минуты: главная не должна перезапрашивать
+Вторая - кэш. Ответы держатся считанные минуты: главная не должна перезапрашивать
 мегабайты JSON при каждом переключении раздела, но и показывать вчерашнее ей
 незачем.
 
@@ -43,12 +43,12 @@ KIND_LABELS = {
     KIND_VK_RECOMS: 'Рекомендация VK',
 }
 
-# Сколько живёт кэш. Главная меняется редко, радио по одному треку — почти никогда.
+# Сколько живёт кэш. Главная меняется редко, радио по одному треку - почти никогда.
 _HOME_TTL = 600
 _RADIO_TTL = 1800
 _PLAYLIST_TTL = 900
 _CACHE_LIMIT = 40
-# Сколько записей берём с одной полки главной — и треков, и плиток подборок
+# Сколько записей берём с одной полки главной - и треков, и плиток подборок
 _HOME_PER_SHELF = 30
 
 # Запасные подборки, когда внутреннего API нет. Заголовки честные: это поиск.
@@ -77,7 +77,7 @@ class Section:
 
     @property
     def label(self) -> str:
-        """Пояснение для подсказки — откуда эти треки."""
+        """Пояснение для подсказки - откуда эти треки."""
         return KIND_LABELS.get(self.kind, '')
 
     @property
@@ -87,7 +87,7 @@ class Section:
 
 
 def playlist_id_from(value: str) -> str:
-    """Номер плейлиста из ссылки или из самого номера. Не нашли — пустая строка."""
+    """Номер плейлиста из ссылки или из самого номера. Не нашли - пустая строка."""
     value = (value or '').strip()
     if not value:
         return ''
@@ -102,7 +102,7 @@ def playlist_id_from(value: str) -> str:
 
 
 def to_track(item: dict) -> Track:
-    """Запись из innertube — в трек приложения."""
+    """Запись из innertube - в трек приложения."""
     title = item.get('title') or ''
     artist = item.get('artist') or ''
     if not artist:
@@ -130,7 +130,7 @@ class Discovery:
         self._cache: dict[str, tuple[float, object]] = {}
         # Клипы живут отдельно от общего кэша и без срока годности: какой ролик
         # снят на песню, за сеанс не меняется, а пустой ответ помнить даже
-        # важнее — иначе трек без клипа ходил бы в поиск при каждом повторе
+        # важнее - иначе трек без клипа ходил бы в поиск при каждом повторе
         self._clips: dict[str, str] = {}
         self._lock = threading.RLock()
 
@@ -145,14 +145,14 @@ class Discovery:
         return self._api.authorized
 
     def reset(self) -> None:
-        """Сменился браузер или прокси — начинаем с чистого листа."""
+        """Сменился браузер или прокси - начинаем с чистого листа."""
         self._api.reset()
         with self._lock:
             self._cache.clear()
             self._clips.clear()
 
     def forget(self, *prefixes: str) -> None:
-        """Забыть разобранное — следующий вызов пойдёт в сеть.
+        """Забыть разобранное - следующий вызов пойдёт в сеть.
 
         От `reset` отличается тем, что не трогает сессию: перечитывать куки
         браузера ради кнопки «Обновить» незачем, это лишние секунды на ровном
@@ -185,14 +185,14 @@ class Discovery:
     def _home_payload(self) -> tuple[list[Section], list[MixShelf]]:
         """Разбор главной: полки с треками и полки с готовыми подборками.
 
-        Обе части приходят одним ответом, поэтому и кэшируются вместе — иначе
+        Обе части приходят одним ответом, поэтому и кэшируются вместе - иначе
         лента ходила бы за одним и тем же JSON дважды."""
         cached = self._cached('home_payload', _HOME_TTL)
         if cached is not None:
             return cached
         try:
             raw_sections, raw_mixes = self._api.home_full(_HOME_PER_SHELF)
-        except Exception as exc:  # noqa: BLE001 — раздел не должен падать из-за YouTube
+        except Exception as exc:  # noqa: BLE001 - раздел не должен падать из-за YouTube
             logger.info('YouTube: главная не разобралась (%s)', type(exc).__name__)
             raw_sections, raw_mixes = [], []
 
@@ -222,13 +222,13 @@ class Discovery:
     def mixes(self, per_shelf: int = 24, shelves: int = 12) -> list[MixShelf]:
         """Готовые подборки главной: миксы, настроения, жанры.
 
-        Именно из них и состоит лента YouTube Music — треков там россыпью почти
+        Именно из них и состоит лента YouTube Music - треков там россыпью почти
         нет. Работает и без входа: главная отдаётся всем, просто без личного."""
         return [MixShelf(shelf.title, shelf.mixes[:per_shelf])
                 for shelf in self._home_payload()[1][:shelves]]
 
     def _fallback_home(self, limit: int) -> list[Section]:
-        """Внутреннего API нет — показываем поиск и честно об этом говорим."""
+        """Внутреннего API нет - показываем поиск и честно об этом говорим."""
         logger.info('YouTube: рекомендаций нет, показываю подборки по поиску')
         result: list[Section] = []
         for title, query in _FALLBACK_QUERIES:
@@ -254,11 +254,11 @@ class Discovery:
         return self._fallback_similar(seed, limit)
 
     def similar(self, seed: Track, limit: int = 25) -> list[Track]:
-        """Похожее на трек — то же радио, но берётся началом списка."""
+        """Похожее на трек - то же радио, но берётся началом списка."""
         return self.radio(seed, limit)
 
     def music_video(self, track: Track) -> str:
-        """Номер клипа для песни из YouTube Music. Нет клипа — пустая строка.
+        """Номер клипа для песни из YouTube Music. Нет клипа - пустая строка.
 
         Ходит в сеть, поэтому вызывать только из фонового потока. Ответ, включая
         отрицательный, запоминается на весь сеанс."""
@@ -276,7 +276,7 @@ class Discovery:
         return found
 
     def _fallback_similar(self, seed: Track, limit: int) -> list[Track]:
-        """Радио по треку не из YouTube (или API молчит) — ищем по исполнителю."""
+        """Радио по треку не из YouTube (или API молчит) - ищем по исполнителю."""
         if seed is None:
             return []
         query = (seed.artist or seed.title or '').strip()
@@ -288,20 +288,20 @@ class Discovery:
 
     # ---------- плейлисты ----------
     def playlists(self, limit: int = 40) -> list[dict]:
-        """Плейлисты пользователя. Нет входа — пустой список, и это нормально."""
+        """Плейлисты пользователя. Нет входа - пустой список, и это нормально."""
         cached = self._cached('playlists', _PLAYLIST_TTL)
         if cached is not None:
             return list(cached)
         try:
             entries = self._api.playlists(limit)
-        except Exception as exc:  # noqa: BLE001 — раздел не должен падать из-за YouTube
+        except Exception as exc:  # noqa: BLE001 - раздел не должен падать из-за YouTube
             logger.info('YouTube: плейлисты не получились (%s)', type(exc).__name__)
             entries = []
         self._store('playlists', entries)
         return list(entries)
 
     def liked(self, limit: int = 60) -> list[Track]:
-        """«Мне понравилось» из YouTube Music. Без входа — пусто, и это честно."""
+        """«Мне понравилось» из YouTube Music. Без входа - пусто, и это честно."""
         cached = self._cached('liked', _PLAYLIST_TTL)
         if cached is not None:
             return list(cached)
@@ -313,7 +313,7 @@ class Discovery:
     def playlist_tracks(self, playlist: str, limit: int = 200) -> list[Track]:
         """Треки плейлиста по номеру или по ссылке.
 
-        Сначала внутренний API (быстро и с обложками), потом yt-dlp — он открывает
+        Сначала внутренний API (быстро и с обложками), потом yt-dlp - он открывает
         любой публичный плейлист даже без входа. Ничего при этом не скачивается."""
         playlist_id = playlist_id_from(playlist)
         if not playlist_id:
@@ -348,7 +348,7 @@ class Discovery:
 
     # ---------- поиск ----------
     def search(self, query: str, limit: int = 25, music_only: bool = True) -> list[Track]:
-        """Поиск. Музыкальный — через YouTube Music, обычный — через yt-dlp."""
+        """Поиск. Музыкальный - через YouTube Music, обычный - через yt-dlp."""
         query = (query or '').strip()
         if not query:
             return []
@@ -363,7 +363,7 @@ class Discovery:
         """Опора на yt-dlp: работает всегда, пока работает сам загрузчик."""
         try:
             entries = ytdlp_engine.search(query, limit, self._browser())
-        except Exception as exc:  # noqa: BLE001 — раздел не должен падать из-за поиска
+        except Exception as exc:  # noqa: BLE001 - раздел не должен падать из-за поиска
             logger.info('YouTube: поиск не удался (%s)', type(exc).__name__)
             return []
         return [from_youtube(entry) for entry in entries if entry.get('id')]

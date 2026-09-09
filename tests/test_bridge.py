@@ -1,6 +1,6 @@
 """Мост для расширения: пускает только своё расширение и только свои действия.
 
-Тест поднимает настоящий сервер на 127.0.0.1 и стучится к нему по-настоящему —
+Тест поднимает настоящий сервер на 127.0.0.1 и стучится к нему по-настоящему -
 проверять такое разбором кода бессмысленно.
 """
 import http.client
@@ -78,7 +78,7 @@ class BridgeServerTests(unittest.TestCase):
         self.assertEqual(self.request('GET', '/status', token='wrong-token')[0], 401)
 
     def test_web_page_origin_rejected(self):
-        """Любой сайт мог бы дёргать localhost — поэтому чужой Origin отбиваем."""
+        """Любой сайт мог бы дёргать localhost - поэтому чужой Origin отбиваем."""
         status, _, _ = self.request('GET', '/status', token=self.token,
                                     origin='https://evil.example')
         self.assertEqual(status, 403)

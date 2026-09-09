@@ -1,20 +1,20 @@
 """Раздел «Плейлисты»: подборки Music Hub, плейлисты VK и плейлисты YouTube.
 
-Слева — списки с фильтром по источнику, справа — треки. Плейлисты VK и YouTube
+Слева - списки с фильтром по источнику, справа - треки. Плейлисты VK и YouTube
 показываются как есть; свои подборки живут в местной базе и могут быть связаны с
 плейлистом VK. Связанную подборку можно синхронизировать: то, что уже есть в VK,
 добавляется в плейлист методом `audio.addToPlaylist`, а то, чего в VK ещё нет,
-переносится кнопкой «Перенести в VK» — тем же путём, что и везде в приложении
+переносится кнопкой «Перенести в VK» - тем же путём, что и везде в приложении
 (сначала поиск в VK, скачивание только если записи там нет).
 
 Плейлист YouTube открывается прямо здесь, без скачивания: сначала пробуем
 внутренний API (он же отдаёт личные плейлисты пользователя, если есть вход),
-потом — обычный `yt-dlp` со списком без загрузки. Личные плейлисты без входа не
+потом - обычный `yt-dlp` со списком без загрузки. Личные плейлисты без входа не
 изображаются: их просто нет.
 
 Чего API текущего токена не умеет, мы не изображаем: порядок треков в VK
 `audio.reorder` недоступен, поэтому перестановка остаётся местной, а состав
-плейлиста YouTube отсюда не меняется — прав на это у нас нет."""
+плейлиста YouTube отсюда не меняется - прав на это у нас нет."""
 from __future__ import annotations
 
 import logging
@@ -47,7 +47,7 @@ YT_LIMIT = 200
 class PlaylistsPage(QWidget):
     """Плейлисты VK и подборки Music Hub с максимально возможной синхронизацией."""
 
-    add_vk_requested = Signal(object)   # список треков — общий путь «+ VK»
+    add_vk_requested = Signal(object)   # список треков - общий путь «+ VK»
     status_message = Signal(str)
 
     def __init__(self, client_provider, store, discovery=None, parent=None):
@@ -71,7 +71,7 @@ class PlaylistsPage(QWidget):
 
         left = QWidget()
         left_box = QVBoxLayout(left)
-        # Отступ справа — под ручку сплиттера: без него вкладки источников
+        # Отступ справа - под ручку сплиттера: без него вкладки источников
         # упирались в неё и первая буква «VK» пропадала под захватом
         left_box.setContentsMargins(0, 0, 8, 0)
         left_box.setSpacing(8)
@@ -114,7 +114,7 @@ class PlaylistsPage(QWidget):
         right_box = QVBoxLayout(right)
         right_box.setContentsMargins(8, 0, 0, 0)
         right_box.setSpacing(8)
-        # Пока плейлист не выбран, об этом уже сказано посреди колонки —
+        # Пока плейлист не выбран, об этом уже сказано посреди колонки -
         # второй раз повторять заголовком незачем
         self._title = ElidedLabel('')
         self._title.setObjectName('h2')
@@ -172,10 +172,10 @@ class PlaylistsPage(QWidget):
         splitter.setChildrenCollapsible(False)
         left.setMinimumWidth(170)
         right.setMinimumWidth(260)
-        # 300 — чтобы в колонку помещались и вкладки источников («Все · Music Hub ·
+        # 300 - чтобы в колонку помещались и вкладки источников («Все · Music Hub ·
         # VK · YouTube»), и все три кнопки под списком в одну строку. При 280 строке
         # оставалось 272 px против нужных 288, и «Обновить» пряталась под «⋯» при
-        # любом размере окна — даже когда справа пустовала половина экрана
+        # любом размере окна - даже когда справа пустовала половина экрана
         splitter.setSizes([300, 600])
         box.addWidget(splitter, 1)
         self._update_buttons()
@@ -185,7 +185,7 @@ class PlaylistsPage(QWidget):
         """Открыть «Любимое».
 
         Отдельного раздела «Избранное» больше нет: избранное и так хранится
-        системным плейлистом, а страница у него была та же самая — список треков
+        системным плейлистом, а страница у него была та же самая - список треков
         и те же кнопки. Сюда приходят все переходы «в избранное»."""
         if not self._playlists.count():
             self.reload()
@@ -208,7 +208,7 @@ class PlaylistsPage(QWidget):
             self._show_local()
 
     def reload(self) -> None:
-        """Перечитать оба списка: свои подборки — сразу, VK — в фоне."""
+        """Перечитать оба списка: свои подборки - сразу, VK - в фоне."""
         self._playlists.clear()
         self._add_header('Music Hub')
         for row in (self._store.playlists() if self._store is not None else []):
@@ -246,7 +246,7 @@ class PlaylistsPage(QWidget):
         run_async(lambda: client.get_playlists(), on_done)
 
     def _load_youtube_playlists(self) -> None:
-        """Личные плейлисты YouTube Music — только при живом входе в аккаунт."""
+        """Личные плейлисты YouTube Music - только при живом входе в аккаунт."""
         self._add_header('YouTube')
         discovery = self._discovery
         if discovery is None:
@@ -265,7 +265,7 @@ class PlaylistsPage(QWidget):
                 self._apply_filter()
                 return
             if not rows:
-                # Без входа личных плейлистов нет — так и пишем, не выдумывая чужих
+                # Без входа личных плейлистов нет - так и пишем, не выдумывая чужих
                 self._add_note('Нет входа в YouTube, плейлист можно открыть по ссылке')
             for row in rows or []:
                 title = row.get('title') or 'Плейлист'
@@ -277,7 +277,7 @@ class PlaylistsPage(QWidget):
         run_async(lambda: discovery.playlists(30), on_done)
 
     def _drop_note(self, text: str, section: str = '') -> None:
-        """Убрать строку-заглушку — свою для каждого раздела."""
+        """Убрать строку-заглушку - свою для каждого раздела."""
         current = ''
         for index in range(self._playlists.count() - 1, -1, -1):
             item = self._playlists.item(index)
@@ -296,7 +296,7 @@ class PlaylistsPage(QWidget):
         return ''
 
     def _apply_filter(self) -> None:
-        """Показать только выбранный источник; «Все» — показать всё."""
+        """Показать только выбранный источник; «Все» - показать всё."""
         wanted = SOURCES[max(0, self._sources.currentIndex())][1]
         section = ''
         for row in range(self._playlists.count()):
@@ -342,7 +342,7 @@ class PlaylistsPage(QWidget):
     # ---------- треки выбранного плейлиста ----------
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
-        # Заголовок и подсказка справа — справка о выбранном плейлисте. В низком
+        # Заголовок и подсказка справа - справка о выбранном плейлисте. В низком
         # окне они отнимали у списка две строки из четырёх; название плейлиста
         # и так подсвечено слева
         tight = self.height() < 240
@@ -401,7 +401,7 @@ class PlaylistsPage(QWidget):
         run_async(lambda: client.get_playlist_tracks(playlist), on_done)
 
     def _load_youtube_tracks(self) -> None:
-        """Состав плейлиста YouTube. Ничего не скачиваем — только список."""
+        """Состав плейлиста YouTube. Ничего не скачиваем - только список."""
         discovery = self._discovery
         playlist = dict(self._current or {})
         if discovery is None or not playlist.get('id'):
@@ -440,7 +440,7 @@ class PlaylistsPage(QWidget):
             self.open_playlist_link(link)
 
     def open_playlist_link(self, link: str) -> bool:
-        """Открыть плейлист YouTube по ссылке — без входа и без скачивания."""
+        """Открыть плейлист YouTube по ссылке - без входа и без скачивания."""
         playlist_id = playlist_id_from(link)
         if not playlist_id:
             self.status_message.emit('В ссылке нет номера плейлиста (list=…)')
@@ -474,7 +474,7 @@ class PlaylistsPage(QWidget):
         return [track for track in self._selected_or_all() if not self._in_vk(track)]
 
     def _on_to_vk(self) -> None:
-        """Перенести плейлист в VK общим путём: поиск в VK, скачивание — крайний случай."""
+        """Перенести плейлист в VK общим путём: поиск в VK, скачивание - крайний случай."""
         missing = self._missing_in_vk()
         if not missing:
             self.status_message.emit('Все записи плейлиста уже есть в VK')
@@ -590,7 +590,7 @@ class PlaylistsPage(QWidget):
 
         def work():
             # VK не жалуется на повторное добавление, поэтому отправляем список целиком:
-            # узнать состав плейлиста заранее нечем — audio.get токену закрыт
+            # узнать состав плейлиста заранее нечем - audio.get токену закрыт
             client.add_to_playlist(vk_playlist_id, audio_ids)
             return len(audio_ids)
 
@@ -651,7 +651,7 @@ class PlaylistsPage(QWidget):
             self.reload()
 
     def _copy_vk(self, data: dict) -> None:
-        """Сделать из плейлиста VK свою подборку — уже связанную с оригиналом."""
+        """Сделать из плейлиста VK свою подборку - уже связанную с оригиналом."""
         client = self._client_provider()
         if client is None:
             return
@@ -703,7 +703,7 @@ class PlaylistsPage(QWidget):
         self._youtube_tracks(data, save)
 
     def _transfer_youtube(self, data: dict) -> None:
-        """Перенести плейлист YouTube в VK — тем же общим путём «+ VK»."""
+        """Перенести плейлист YouTube в VK - тем же общим путём «+ VK»."""
         def transfer(tracks):
             missing = [track for track in tracks if not self._in_vk(track)]
             if not missing:

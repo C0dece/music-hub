@@ -78,16 +78,16 @@ class ControllerTestCase(unittest.TestCase):
         """Дождаться фоновых задач: рекомендации уходят в пул потоков.
 
         Пул глобальный и общий на весь прогон, поэтому `waitForDone` ждёт не нашу
-        задачу, а вообще все — включая чужие сетевые, застрявшие на таймауте другого
+        задачу, а вообще все - включая чужие сетевые, застрявшие на таймауте другого
         теста. Тогда ожидание истекало впустую, и тест падал не по своей вине.
         Ждём короткими шагами и выходим, как только пришло нужное нам."""
         if until is None:
-            # Ждать нечего конкретного — как раньше: пул опустел, значит всё сделано
+            # Ждать нечего конкретного - как раньше: пул опустел, значит всё сделано
             for _round in range(rounds):
                 QThreadPool.globalInstance().waitForDone(2000)
                 self.app.processEvents()
             return
-        # Есть чёткий признак готовности — ждём именно его. Запас щедрый нарочно:
+        # Есть чёткий признак готовности - ждём именно его. Запас щедрый нарочно:
         # при успехе выходим сразу, поэтому длинный предел ничего не замедляет,
         # зато переживает занятый чужими задачами пул
         deadline = time.monotonic() + rounds * 10.0
@@ -229,7 +229,7 @@ class AutoplayTests(ControllerTestCase):
         self.player.set_recommender(slow)
         self.player.play_tracks([yt('a')], 0)
         before = [t.uid for t in self.player.queue.tracks]
-        # Пока запрос в пути, очередь сменилась — ответ уже не про неё
+        # Пока запрос в пути, очередь сменилась - ответ уже не про неё
         self.player._rec_token += 1
         released.set()
         self.settle()
@@ -255,7 +255,7 @@ class HistoryTests(ControllerTestCase):
         self.assertEqual(len(self.store.history(10)), 1)
 
     def test_share_of_short_track_counts(self):
-        # Пятая часть минутной песни — это уже прослушивание
+        # Пятая часть минутной песни - это уже прослушивание
         self._listen(13, duration=60)
         self.player.stop()
         self.assertEqual(len(self.store.history(10)), 1)
@@ -332,12 +332,12 @@ class ModeTests(ControllerTestCase):
         played = len(self.backend.played)
         self.player.set_mode(pc.MODE_AUDIO)
         self.player.set_mode(pc.MODE_VIDEO)
-        # Переключение режима — это только показ, трек заново не включается
+        # Переключение режима - это только показ, трек заново не включается
         self.assertEqual(len(self.backend.played), played)
 
 
 class BackendChoiceTests(ControllerTestCase):
-    """Офлайн-копия ролика — это только звук, и картинку по ней не показать."""
+    """Офлайн-копия ролика - это только звук, и картинку по ней не показать."""
 
     def setUp(self):
         super().setUp()
@@ -364,7 +364,7 @@ class BackendChoiceTests(ControllerTestCase):
         self.assertIs(self.player._pick_backend(track), self.web_backend)
 
     def test_video_copy_still_plays_from_disk(self):
-        """Скачали именно видео — показывать его из сети незачем."""
+        """Скачали именно видео - показывать его из сети незачем."""
         self.player.set_mode(pc.MODE_VIDEO)
         track = yt('a').with_local_path(self._copy('a.mp4'))
         self.assertIs(self.player._pick_backend(track), self.file_backend)

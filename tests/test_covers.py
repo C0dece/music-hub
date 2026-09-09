@@ -1,9 +1,9 @@
 """Загрузка обложек: очередь, повторы и общая сессия.
 
 Списки просят до трёх десятков картинок за секунду, а пул потоков на всё
-приложение — восемь мест. Раньше обложки занимали их все, каждая открывала своё
+приложение - восемь мест. Раньше обложки занимали их все, каждая открывала своё
 соединение, и треть загрузок отваливалась по таймауту (598 таких в журнале за
-неделю). Отвалившаяся ссылка помечалась мёртвой до перезапуска — обложка
+неделю). Отвалившаяся ссылка помечалась мёртвой до перезапуска - обложка
 пропадала насовсем."""
 import tempfile
 import unittest
@@ -16,7 +16,7 @@ from app.ui import covers
 class FakePool:
     """Замена `run_async`: задачи копятся, а выполняются когда скажем.
 
-    Настоящий пул потоков сюда не годится — очередь проверяется по числу
+    Настоящий пул потоков сюда не годится - очередь проверяется по числу
     одновременно запущенных задач, а с живыми потоками это гонка."""
 
     def __init__(self):
@@ -93,7 +93,7 @@ class QueueTests(CoverTestCase):
         self.assertEqual(covers._running, 0)
 
     def test_visible_cover_goes_first(self):
-        """Прокрутка просит ту же ссылку снова — значит она сейчас на экране."""
+        """Прокрутка просит ту же ссылку снова - значит она сейчас на экране."""
         for i in range(10):
             covers.load(f'https://host/{i}.jpg', lambda *_: None)
         waiting = covers._queue[0]                  # разбирался бы последним
@@ -101,7 +101,7 @@ class QueueTests(CoverTestCase):
         self.assertEqual(covers._queue[-1], waiting)
 
     def test_local_file_skips_the_queue(self):
-        """Обложка из тегов лежит на диске — ждать сетевых таймаутов ей незачем."""
+        """Обложка из тегов лежит на диске - ждать сетевых таймаутов ей незачем."""
         for i in range(10):
             covers.load(f'https://host/{i}.jpg', lambda *_: None)
         started = self.pool.started
@@ -146,7 +146,7 @@ class FallbackTests(unittest.TestCase):
 
     `yt3.googleusercontent.com` у части провайдеров не отвечает: рукопожатие TLS
     висит до конца срока. Те же файлы лежат на `lh3` и оттуда отдаются за доли
-    секунды — замер на живой сети: yt3 ноль из двенадцати за 122 с, lh3 десять
+    секунды - замер на живой сети: yt3 ноль из двенадцати за 122 с, lh3 десять
     из десяти за 7.7 с."""
 
     URL = 'https://yt3.googleusercontent.com/ytc/abc=s88'
@@ -193,7 +193,7 @@ class FallbackTests(unittest.TestCase):
         self.assertEqual(self.asked, [self.URL, self.SPARE])
 
     def test_working_host_is_left_alone(self):
-        """Основной адрес рабочий — просто не у всех. Первым идём к нему."""
+        """Основной адрес рабочий - просто не у всех. Первым идём к нему."""
         with self._session(self._ok()):
             covers._fetch(self.URL, Path(tempfile.mkdtemp()) / 'x.img')
         self.assertEqual(self.asked, [self.URL])
@@ -201,7 +201,7 @@ class FallbackTests(unittest.TestCase):
 
     def test_next_cover_skips_the_dead_host(self):
         """Главное ради скорости: ждать сорванный хост на каждой картинке в
-        списке — это десять секунд на обложку (12 штук ехали 127 с вместо 8)."""
+        списке - это десять секунд на обложку (12 штук ехали 127 с вместо 8)."""
         import requests
 
         with self._session(requests.ConnectTimeout(), self._ok()):
@@ -231,7 +231,7 @@ class FallbackTests(unittest.TestCase):
 
 
 class SessionTests(unittest.TestCase):
-    """Соединения переиспользуются: своё рукопожатие TLS на каждую обложку —
+    """Соединения переиспользуются: своё рукопожатие TLS на каждую обложку -
     это и был источник таймаутов."""
 
     def tearDown(self):
@@ -250,7 +250,7 @@ class SessionTests(unittest.TestCase):
 
     def test_reset_forces_a_new_session(self):
         """Обход блокировки держит один порт при смене прокси за ним, поэтому
-        сессия расхождения не заметит — её рвут явно."""
+        сессия расхождения не заметит - её рвут явно."""
         with mock.patch.object(covers.proxy, 'effective',
                                return_value='http://127.0.0.1:58695'):
             first = covers._http()

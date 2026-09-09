@@ -20,7 +20,7 @@ def _set_taskbar_identity() -> None:
         return
     try:
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(config.APP_ID)
-    except Exception:  # noqa: BLE001 — косметика, падать из-за неё нельзя
+    except Exception:  # noqa: BLE001 - косметика, падать из-за неё нельзя
         pass
 
 
@@ -37,7 +37,7 @@ def main() -> None:
     app.setWindowIcon(app_icon())
     app.setStyleSheet(theme.stylesheet())
 
-    # Окно может быть спрятано к часам или подменено мини-плеером — закрытие
+    # Окно может быть спрятано к часам или подменено мини-плеером - закрытие
     # последнего окна не должно завершать программу, выход делает само окно
     app.setQuitOnLastWindowClosed(False)
     window = MainWindow()

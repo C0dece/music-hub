@@ -86,7 +86,7 @@ class ArtistPage(QWidget):
         self.reload()
 
     def reload(self) -> None:
-        """Своё показываем сразу, найденное в сети — как придёт."""
+        """Своё показываем сразу, найденное в сети - как придёт."""
         known = self._store.artist_tracks(self._artist) if self._store else []
         self.list.set_tracks(known)
         self._hint.setText('У вас: {} · ищу в YouTube…'.format(len(known))

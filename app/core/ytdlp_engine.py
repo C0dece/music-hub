@@ -29,7 +29,7 @@ def _network_opts() -> dict:
 
 class _YtdlpLogger:
     """Свой логгер вместо немоты: с quiet=True yt-dlp не говорит ни слова, и 20 повторов
-    с паузами до 30 с выглядели как намертво вставшая загрузка на 0% — ни в логе, ни в
+    с паузами до 30 с выглядели как намертво вставшая загрузка на 0% - ни в логе, ни в
     очереди. При заданном logger yt-dlp шлёт сюда всё, включая сообщения о повторах,
     мимо quiet."""
 
@@ -80,11 +80,11 @@ def build_opts(mode: str, video_quality: str, audio_format: str, audio_bitrate: 
         'nooverwrites': True,
         # Скорость режется на каждое соединение отдельно, поэтому файл, разбитый
         # на куски (DASH и HLS у YouTube), быстрее забрать в несколько потоков.
-        # На цельный файл опция не влияет — там кусок ровно один
+        # На цельный файл опция не влияет - там кусок ровно один
         'concurrent_fragment_downloads': max(1, int(fragment_concurrency)),
         **_network_opts(),
     }
-    # Без JS-движка YouTube не отдаст ссылки на потоки — пусть падает здесь с понятным
+    # Без JS-движка YouTube не отдаст ссылки на потоки - пусть падает здесь с понятным
     # текстом, а не позже с «Requested format is not available»
     opts.update(js_runtime.ytdlp_opts())
     if progress_hook:
@@ -106,13 +106,13 @@ def build_opts(mode: str, video_quality: str, audio_format: str, audio_bitrate: 
 
 
 def build_audio_file_opts(outtmpl: str, progress_hook=None, postprocessor_hook=None) -> dict:
-    """Опции для скачивания одного готового аудиофайла по прямой ссылке — музыка VK.
+    """Опции для скачивания одного готового аудиофайла по прямой ссылке - музыка VK.
 
     Формат и битрейт из настроек здесь намеренно не применяются: VK отдаёт уже готовый
     mp3, и перекодирование только ухудшило бы звук. Постпроцессор нужен лишь чтобы снять
-    HLS/контейнерную обёртку — при совпадении кодека yt-dlp делает это через «-c copy».
+    HLS/контейнерную обёртку - при совпадении кодека yt-dlp делает это через «-c copy».
 
-    JS-движок здесь не нужен: подписи потоков — история про YouTube, ссылку на трек VK
+    JS-движок здесь не нужен: подписи потоков - история про YouTube, ссылку на трек VK
     мы уже получили сами."""
     opts = {
         'outtmpl': outtmpl,
@@ -132,7 +132,7 @@ def build_audio_file_opts(outtmpl: str, progress_hook=None, postprocessor_hook=N
 
 
 def downloaded_path(info: dict) -> str:
-    """Путь к готовому файлу. После постпроцессора он есть только в requested_downloads —
+    """Путь к готовому файлу. После постпроцессора он есть только в requested_downloads -
     в info['filepath'] лежит имя до конвертации (или ничего)."""
     for entry in info.get('requested_downloads') or []:
         path = entry.get('filepath')
@@ -142,7 +142,7 @@ def downloaded_path(info: dict) -> str:
 
 
 def extract_entries(url: str, cookies_browser: str | None = None) -> list[dict]:
-    """Быстрый список элементов (без скачивания) — для одиночного видео или плейлиста."""
+    """Быстрый список элементов (без скачивания) - для одиночного видео или плейлиста."""
     opts = {
         'extract_flat': 'in_playlist',
         'quiet': True,
@@ -189,11 +189,11 @@ def extract_entries(url: str, cookies_browser: str | None = None) -> list[dict]:
 
 
 def search(query: str, limit: int = 25, cookies_browser: str | None = None) -> list[dict]:
-    """Поиск по YouTube через сам yt-dlp — своего ключа к API для этого не нужно.
+    """Поиск по YouTube через сам yt-dlp - своего ключа к API для этого не нужно.
 
     Берём только список (`extract_flat`): разбор каждого ролика по отдельности занял
     бы десятки секунд, а для строки результата хватает названия, канала и длины.
-    Обложку не запрашиваем — у YouTube она собирается по номеру ролика."""
+    Обложку не запрашиваем - у YouTube она собирается по номеру ролика."""
     query = (query or '').strip()
     if not query:
         return []

@@ -24,7 +24,7 @@ def format_duration(seconds) -> str:
 class PlaylistPickDialog(QDialog):
     """Выбор элементов плейлиста перед скачиванием.
 
-    Отметки живут на самих QListWidgetItem, а поиск только прячет строки — так
+    Отметки живут на самих QListWidgetItem, а поиск только прячет строки - так
     выбор не теряется при вводе в поиск и «Скачать» получает именно то, что отмечено."""
 
     def __init__(self, title: str, entries: list[dict], parent=None, history_key=None,
@@ -34,11 +34,11 @@ class PlaylistPickDialog(QDialog):
         self.resize(640, 560)
         self._entries = entries
         self._items: list[QListWidgetItem] = []
-        # preview(entry) открывает запись до скачивания. Чем именно — знает
+        # preview(entry) открывает запись до скачивания. Чем именно - знает
         # вызывающий: диалогу всё равно, видео это с YouTube или трек VK
         self._preview = preview
         self._preview_btn = None
-        # history_key(entry) -> ключ истории; None — если отмечать скачанное не нужно.
+        # history_key(entry) -> ключ истории; None - если отмечать скачанное не нужно.
         # Ключ зависит от режима (музыка/видео), а его знает только вызывающий
         self._history_key = history_key
 

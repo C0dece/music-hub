@@ -11,7 +11,7 @@ from app.core import library, tags
 try:
     import mutagen
     from mutagen.id3 import APIC, ID3, TALB, TIT2, TPE1
-except ImportError:  # без mutagen проверять нечего — модуль сам это переживает
+except ImportError:  # без mutagen проверять нечего - модуль сам это переживает
     mutagen = None
 
 # Один кадр MPEG1 Layer III 128 кбит/с, 44,1 кГц: заголовок и тишина. Настоящий
@@ -25,7 +25,7 @@ class TagsTests(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp(prefix='tags-test-')
         self.addCleanup(shutil.rmtree, self.dir, True)
-        # Обложки складываются в папку конфигурации — в тестах она своя
+        # Обложки складываются в папку конфигурации - в тестах она своя
         patch = mock.patch.object(config, 'CONFIG_DIR', self.dir)
         patch.start()
         self.addCleanup(patch.stop)
@@ -84,7 +84,7 @@ class TagsTests(unittest.TestCase):
         self.assertTrue(track.playable)
 
     def test_track_falls_back_to_file_name(self):
-        """Без тегов исполнитель и название берутся из имени файла — иначе свои
+        """Без тегов исполнитель и название берутся из имени файла - иначе свои
         файлы выглядели бы в списке безымянными."""
         path = self._mp3('Linkin Park - Faint.mp3')
         track = library.audio_track(path)

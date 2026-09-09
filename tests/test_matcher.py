@@ -90,7 +90,7 @@ class MatchTests(unittest.TestCase):
 
 class TranslitTests(unittest.TestCase):
     """Половина русских записей в VK подписана латиницей, а поиск m.vk.ru кириллицу
-    вообще не понимает — поэтому транслит нужен и при сравнении, и при запросе."""
+    вообще не понимает - поэтому транслит нужен и при сравнении, и при запросе."""
 
     def test_translit_basic(self):
         self.assertEqual(matcher.translit('Земфира'), 'Zemfira')
@@ -127,7 +127,7 @@ class TranslitTests(unittest.TestCase):
 
 
 class StubGuardTests(unittest.TestCase):
-    """В VK попадаются обрезки с правильным названием — их нельзя брать за трек."""
+    """В VK попадаются обрезки с правильным названием - их нельзя брать за трек."""
 
     def test_stub_rejected_when_duration_unknown(self):
         result = matcher.match(yt('Ленинград', 'Экспонат', 0),

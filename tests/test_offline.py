@@ -176,7 +176,7 @@ class OfflineTests(unittest.TestCase):
             paths[track.uid] = self._file(f'{track.youtube_id}.mp3', 4096)
             self.store.set_local_path(track.uid, paths[track.uid], cached=True)
         self.store.add_favorite(loved)
-        # Порядок уборки — по времени копирования, а не по имени файла
+        # Порядок уборки - по времени копирования, а не по имени файла
         self.store._exec('UPDATE tracks SET cached_at = ? WHERE uid = ?',
                          (1.0, loved.uid))
         self.store._exec('UPDATE tracks SET cached_at = ? WHERE uid = ?', (2.0, old.uid))

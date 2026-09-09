@@ -2,7 +2,7 @@
 
 Здесь проверяется корень «повторного входа»: вход через VK ID кладёт remixsid на
 `.vk.com`, а все запросы за треками уходят на `m.vk.ru`. requests соблюдает домен
-строго и такую куку туда не отправляет — VK отвечает адресом страницы входа,
+строго и такую куку туда не отправляет - VK отвечает адресом страницы входа,
 приложение просит войти снова, повторный вход кладёт куку на тот же чужой домен,
 и круг замыкается. Проверки «есть ли remixsid» по одному имени этого не видели.
 
@@ -50,7 +50,7 @@ class DomainTests(unittest.TestCase):
             self.assertTrue(_is_site_domain(domain), domain)
 
     def test_other_vk_domains_are_not_the_site(self):
-        """`.vk.com` — тот же сайт для человека, но не для requests."""
+        """`.vk.com` - тот же сайт для человека, но не для requests."""
         for domain in ('vk.com', '.vk.com', 'm.vk.com', 'login.vk.com'):
             self.assertFalse(_is_site_domain(domain), domain)
 
@@ -69,7 +69,7 @@ class ReachTests(unittest.TestCase):
         self.assertTrue(vk_client._session_reaches_site(session))
 
     def test_cookie_only_on_vk_com_does_not_count(self):
-        """Ровно случай входа через VK ID — раньше он считался успехом."""
+        """Ровно случай входа через VK ID - раньше он считался успехом."""
         session = requests.Session()
         session.cookies.set_cookie(cookie(domain='.vk.com'))
         self.assertFalse(vk_client._session_reaches_site(session))
@@ -82,7 +82,7 @@ class ReachTests(unittest.TestCase):
 
 
 class MirrorTests(unittest.TestCase):
-    """`_mirror_session_cookie`: одна сессия — оба домена одного сайта."""
+    """`_mirror_session_cookie`: одна сессия - оба домена одного сайта."""
 
     def test_cookie_from_vk_com_starts_reaching_the_site(self):
         session = requests.Session()
@@ -103,11 +103,11 @@ class MirrorTests(unittest.TestCase):
         self.assertIn('remixsid', sent_to(session, 'https://vk.com/audio'))
 
     def test_a_live_cookie_is_never_overwritten_by_the_neighbour(self):
-        """Своя сессия у рабочего домена уже есть — трогать её нельзя.
+        """Своя сессия у рабочего домена уже есть - трогать её нельзя.
 
         В файле кук месяцами лежит remixsid со старых входов через VK ID. Если
         раскладывать куку на оба домена подряд, этот мусор затрёт только что
-        полученную рабочую — вход держался бы до первого перечитывания файла,
+        полученную рабочую - вход держался бы до первого перечитывания файла,
         и «повторный вход» вернулся бы другой дорогой."""
         session = requests.Session()
         session.cookies.set_cookie(cookie(domain='.vk.ru', value='живая'))
@@ -119,7 +119,7 @@ class MirrorTests(unittest.TestCase):
         self.assertNotIn('мусор', sent_to(session, vk_client._SECTION_URL))
 
     def test_mirroring_twice_changes_nothing(self):
-        """Файл перечитывают при каждом фоновом перезаходе — накопления быть не должно."""
+        """Файл перечитывают при каждом фоновом перезаходе - накопления быть не должно."""
         session = requests.Session()
         session.cookies.set_cookie(cookie(domain='.vk.com', value='сессия'))
         vk_client._mirror_session_cookie(session)
@@ -164,7 +164,7 @@ class LoadFromFileTests(unittest.TestCase):
         self.assertFalse(vk_client._load_vk_cookies_from_file(session))
 
     def test_file_without_a_session_cookie_is_not_a_session(self):
-        """Файл после входа через VK ID существует всегда — сам по себе он ничего не значит."""
+        """Файл после входа через VK ID существует всегда - сам по себе он ничего не значит."""
         self.save(cookie(name='remixlang', domain='.vk.ru'),
                   cookie(name='remixmsts', domain='.vk.ru'))
         session = requests.Session()
@@ -183,7 +183,7 @@ class MergeSaveTests(unittest.TestCase):
 
     Замер по журналу: keeper уходил по первой `remixsid` с четырьмя куками в руках и
     переписывал ими файл из двадцати пяти. `remixsid` оставалась на месте, а сессия
-    умирала — VK на первом же запросе отвечал страницей входа."""
+    умирала - VK на первом же запросе отвечал страницей входа."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -209,7 +209,7 @@ class MergeSaveTests(unittest.TestCase):
         self.assertEqual(len(saved), 4)
 
     def test_same_name_on_another_domain_is_kept_separately(self):
-        """remixsid для `.vk.com` и `.vk.ru` — разные куки, затирать друг друга нельзя."""
+        """remixsid для `.vk.com` и `.vk.ru` - разные куки, затирать друг друга нельзя."""
         merge_cookies_to_file([cookie(domain='.vk.com', value='com')])
         merge_cookies_to_file([cookie(domain='.vk.ru', value='ru')])
         jar = http.cookiejar.MozillaCookieJar(str(config.VK_COOKIES_FILE))
@@ -224,7 +224,7 @@ class MergeSaveTests(unittest.TestCase):
         """Файл только пополнялся, и мусор в нём копился без конца.
 
         Замер рабочего файла: 65 кук против 48 в профиле браузера, и семь из них
-        протухшие — среди них `httoken` на четырёх доменах VK. Живой браузер такого
+        протухшие - среди них `httoken` на четырёх доменах VK. Живой браузер такого
         не шлёт, а протухший `httoken` VK встречает ответом «войдите» на совершенно
         целой сессии. Это и есть один из источников повторяющегося «вход слетел»."""
         dead = time.time() - 3600
@@ -235,7 +235,7 @@ class MergeSaveTests(unittest.TestCase):
         self.assertNotIn('httoken', saved)        # мёртвое выброшено
 
     def test_a_session_cookie_without_expiry_survives(self):
-        """Кука без срока — не протухшая, а сессионная. Выбросить её значит убить вход."""
+        """Кука без срока - не протухшая, а сессионная. Выбросить её значит убить вход."""
         merge_cookies_to_file([cookie(value='live', expires=None)])
         self.assertEqual(self.names(), {'remixsid': 'live'})
 
@@ -246,7 +246,7 @@ class BlockedAccountTests(unittest.TestCase):
     VK на заблокированном аккаунте уводит на `/login?act=blocked`: адрес содержит
     `login`, и старая проверка честно считала это «войдите заново». Программа уходила
     в бесконечный тихий перезаход, который не мог закончиться ничем. Здесь заперта
-    ровно эта развилка — чтобы её случайно не выпрямили обратно."""
+    ровно эта развилка - чтобы её случайно не выпрямили обратно."""
 
     def test_blocked_redirect_is_not_an_ordinary_login_redirect(self):
         for location in ('https://m.vk.ru/login?act=blocked',
@@ -268,14 +268,14 @@ class BlockedAccountTests(unittest.TestCase):
                 self.assertFalse(vk_client._is_blocked_location(payload))
 
     def test_api_error_text_separates_block_from_revoked_token(self):
-        """Код 5 у VK один на оба случая — отличаем по тексту, другого признака нет."""
+        """Код 5 у VK один на оба случая - отличаем по тексту, другого признака нет."""
         blocked = Exception('[5] User authorization failed: user is blocked.')
         revoked = Exception('[5] User authorization failed: invalid access_token.')
         self.assertTrue(vk_client._is_blocked_api_error(blocked))
         self.assertFalse(vk_client._is_blocked_api_error(revoked))
 
     def test_check_web_session_raises_instead_of_asking_for_a_new_login(self):
-        """False здесь значит «чини перезаходом». Чинить нечего — уходит исключение."""
+        """False здесь значит «чини перезаходом». Чинить нечего - уходит исключение."""
         class FakeResponse:
             def json(self):
                 return {'location': 'https://m.vk.ru/login?act=blocked'}

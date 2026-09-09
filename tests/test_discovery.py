@@ -2,7 +2,7 @@
 
 Настоящие ответы private API сюда не ходят: в `tests/data` лежат сохранённые
 образцы той же формы. Именно разбор чаще всего и ломается, когда YouTube меняет
-разметку, — поэтому проверяем его отдельно от сети.
+разметку, - поэтому проверяем его отдельно от сети.
 """
 import json
 import os
@@ -38,7 +38,7 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(first['duration'], 243)
         # Обложка берётся самая крупная из списка
         self.assertEqual(first['cover'], 'https://lh3.googleusercontent.com/big=w226')
-        # У второго трека обложки в ответе нет — подставляем стандартную
+        # У второго трека обложки в ответе нет - подставляем стандартную
         self.assertIn('kXYiU_JCYtU', items[1]['cover'])
         self.assertEqual(items[1]['duration'], 187)
 
@@ -61,7 +61,7 @@ class ParseTest(unittest.TestCase):
 
     def test_radio_items_without_duplicates(self):
         items = innertube.parse_items(self.radio, 25)
-        # Третья запись — повтор первой, в очереди она не нужна
+        # Третья запись - повтор первой, в очереди она не нужна
         self.assertEqual([item['id'] for item in items],
                          ['sSAt1Ux1ODA', 'MPlqSJ4gGgg'])
         self.assertEqual(items[1]['artist'], 'Deftones')
@@ -71,7 +71,7 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(len(innertube.parse_items(self.home, 1)), 1)
 
     def test_mix_sections_keep_ready_made_playlists(self):
-        """Полка с плитками подборок — это лента, из которой и выбирают."""
+        """Полка с плитками подборок - это лента, из которой и выбирают."""
         sections = innertube.parse_mix_sections(self.home, 20)
         self.assertEqual([title for title, _mixes in sections], ['Ваши плейлисты'])
         self.assertEqual([entry['id'] for entry in sections[0][1]],
@@ -80,7 +80,7 @@ class ParseTest(unittest.TestCase):
     def test_mix_sections_take_radio_tiles(self):
         """Микс главной живёт под номером `RD…`: без него полок почти не остаётся."""
         tile = {'musicTwoRowItemRenderer': {
-            'title': {'runs': [{'text': 'Микс — Deftones'}]},
+            'title': {'runs': [{'text': 'Микс - Deftones'}]},
             'subtitle': {'runs': [{'text': 'Deftones, Chevelle и другие'}]},
             'navigationEndpoint': {
                 'watchPlaylistEndpoint': {'playlistId': 'RDCLAK5uy_abcdef'}}}}
@@ -98,7 +98,7 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(innertube.parse_playlists(data, 20), [])
 
     def test_broken_payload_gives_nothing(self):
-        """Чужая разметка не должна ронять приложение — просто пусто."""
+        """Чужая разметка не должна ронять приложение - просто пусто."""
         for payload in ({}, {'contents': None}, {'contents': [1, 2, 3]},
                         {'musicResponsiveListItemRenderer': {'videoId': 'short'}}):
             self.assertEqual(innertube.parse_items(payload, 10), [])
@@ -108,7 +108,7 @@ class ParseTest(unittest.TestCase):
 
 
 class ConvertTest(unittest.TestCase):
-    """Запись InnerTube — в трек приложения."""
+    """Запись InnerTube - в трек приложения."""
 
     def test_to_track(self):
         track = to_track({'id': 'sSAt1Ux1ODA', 'title': 'Sextape',
@@ -133,7 +133,7 @@ class ConvertTest(unittest.TestCase):
 
 
 class HonestyTest(unittest.TestCase):
-    """Поиск нельзя выдавать за рекомендацию — подпись должна это показывать."""
+    """Поиск нельзя выдавать за рекомендацию - подпись должна это показывать."""
 
     def test_labels(self):
         self.assertTrue(Section('Для вас', [], KIND_RECOMMENDED).genuine)

@@ -1,8 +1,8 @@
-"""Библиотека — то, что уже скачано и лежит на диске.
+"""Библиотека - то, что уже скачано и лежит на диске.
 
 Список строится сканированием папок из настроек, а не по history.json: файлы
 переименовывают и удаляют мимо программы, и история быстро расходится с реальностью.
-История нужна для другого — чтобы не качать одно и то же дважды."""
+История нужна для другого - чтобы не качать одно и то же дважды."""
 import ctypes
 import logging
 import os
@@ -27,7 +27,7 @@ class MediaFile:
     size: int          # байт
     mtime: float       # время последнего изменения, unix
     folder: str        # папка, в которой лежит файл
-    source: str = ''   # 'youtube' | 'vk_audio' | 'vk_video' — из истории, если файл в ней есть
+    source: str = ''   # 'youtube' | 'vk_audio' | 'vk_video' - из истории, если файл в ней есть
 
     @property
     def size_text(self) -> str:
@@ -48,7 +48,7 @@ def scan(directories) -> list[MediaFile]:
     """Все медиафайлы в указанных папках (с подпапками), новые сверху."""
     files: list[MediaFile] = []
     seen: set[str] = set()
-    # Сама папка не помнит, откуда файл, — это знает только история загрузок
+    # Сама папка не помнит, откуда файл, - это знает только история загрузок
     sources = history.sources_by_path()
 
     for directory in directories:
@@ -84,9 +84,9 @@ def scan(directories) -> list[MediaFile]:
 
 
 def audio_track(path: str, name: str = '') -> Track:
-    """Трек из файла — с тегами, если они читаются.
+    """Трек из файла - с тегами, если они читаются.
 
-    Отдельно от `track.from_local`, потому что чтение тегов — это работа с диском:
+    Отдельно от `track.from_local`, потому что чтение тегов - это работа с диском:
     модель треков в неё не лезет, а здесь мы и так уже в файловом модуле."""
     return from_local(path, name, tags.read(path))
 
@@ -94,7 +94,7 @@ def audio_track(path: str, name: str = '') -> Track:
 def scan_audio_tracks(directories) -> list[Track]:
     """Своя музыка из указанных папок треками, а не файлами.
 
-    Нужно «Моей музыке»: там всё — Track, независимо от источника, поэтому файл с
+    Нужно «Моей музыке»: там всё - Track, независимо от источника, поэтому файл с
     диска обязан выглядеть так же, как аудиозапись VK. Обход папок долгий (теги
     читаются у каждого файла), поэтому звать только из фона."""
     result: list[Track] = []
@@ -108,7 +108,7 @@ def scan_audio_tracks(directories) -> list[Track]:
 def open_file(path: str) -> None:
     """Открыть файл программой по умолчанию."""
     if sys.platform == 'win32':
-        os.startfile(path)  # noqa: S606 — штатный способ открыть файл в Windows
+        os.startfile(path)  # noqa: S606 - штатный способ открыть файл в Windows
     elif sys.platform == 'darwin':
         subprocess.Popen(['open', path])
     else:
@@ -142,7 +142,7 @@ def rename(path: str, new_name: str) -> str:
 
 
 def delete(paths: list[str]) -> None:
-    """Удалить файлы. В Windows — в корзину, чтобы промах можно было отменить."""
+    """Удалить файлы. В Windows - в корзину, чтобы промах можно было отменить."""
     if sys.platform == 'win32' and _delete_to_recycle_bin(paths):
         return
     for path in paths:
@@ -154,7 +154,7 @@ def delete(paths: list[str]) -> None:
 
 
 # --- корзина Windows -------------------------------------------------------
-# Через SHFileOperationW из shell32 — это системный API, дополнительных пакетов
+# Через SHFileOperationW из shell32 - это системный API, дополнительных пакетов
 # не требует. Кроме корзины он даёт и штатный диалог «файл занят другой программой».
 
 _FO_DELETE = 0x0003
@@ -178,7 +178,7 @@ class _SHFILEOPSTRUCTW(ctypes.Structure):
 
 def _delete_to_recycle_bin(paths: list[str]) -> bool:
     try:
-        # Список путей для API — строки через \0 и ещё один \0 в конце
+        # Список путей для API - строки через \0 и ещё один \0 в конце
         buffer = '\0'.join(os.path.abspath(p) for p in paths) + '\0\0'
         op = _SHFILEOPSTRUCTW(
             hwnd=None,
